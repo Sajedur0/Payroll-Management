@@ -48,11 +48,14 @@ namespace PayrollManagement.ViewModels
         private string? _searchText;
         public string? SearchText { get => _searchText; set { _searchText = value; OnPropertyChanged(); } }
 
-        private DateTime _fromDate = DateTime.Today.AddDays(-30);
-        public DateTime FromDate { get => _fromDate; set { _fromDate = value; OnPropertyChanged(); } }
+        private DateTime _fromDate = DateTime.Today;
+        public DateTime FromDate { get => _fromDate; set { _fromDate = value; OnPropertyChanged(); OnPropertyChanged(nameof(DateRangeDisplay)); OnPropertyChanged(nameof(DailyTitleDisplay)); } }
 
         private DateTime _toDate = DateTime.Today;
-        public DateTime ToDate { get => _toDate; set { _toDate = value; OnPropertyChanged(); } }
+        public DateTime ToDate { get => _toDate; set { _toDate = value; OnPropertyChanged(); OnPropertyChanged(nameof(DateRangeDisplay)); OnPropertyChanged(nameof(DailyTitleDisplay)); } }
+
+        public string DateRangeDisplay => $"{FromDate:dd/MM/yyyy} to {ToDate:dd/MM/yyyy}";
+        public string DailyTitleDisplay => FromDate.Date == ToDate.Date ? $"Daily Log — {FromDate:dd/MM/yyyy}" : $"Log — {FromDate:dd/MM/yyyy} to {ToDate:dd/MM/yyyy}";
 
         public RelayCommand LoadCommand { get; }
         public RelayCommand SearchCommand { get; }

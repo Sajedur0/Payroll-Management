@@ -99,23 +99,29 @@
 
 ## 🖼️ Screenshots
 
-> Replace the placeholders below with your actual screenshots (`assets/screenshot-*.png`)
-
 | Dashboard | Employee Management |
 |:---------:|:-------------------:|
-| <img src="assets/about-icon.png" width="400" alt="Dashboard"/> | <img src="assets/about-icon.png" width="400" alt="Employee"/> |
+| <img src="assets/Screenshot/dashboard.png" width="400" alt="Dashboard"/> | <img src="assets/Screenshot/employee.png" width="400" alt="Employee Management"/> |
 
 | Attendance Log | Report |
 |:--------------:|:------:|
-| <img src="assets/about-icon.png" width="400" alt="Attendance"/> | <img src="assets/about-icon.png" width="400" alt="Report"/> |
+| <img src="assets/Screenshot/attendance-log.png" width="400" alt="Attendance Log"/> | <img src="assets/Screenshot/dashboard.png" width="400" alt="Report - Dashboard Preview"/> |
 
-```text
-Tip: Take screenshots with Win+Shift+S and save as:
-  assets/screenshot-dashboard.png
-  assets/screenshot-employee.png
-  assets/screenshot-attendance.png
-  assets/screenshot-report.png
-```
+> **Note:** `Report` view currently reuses `dashboard.png` as preview. Replace `assets/Screenshot/dashboard.png` in the Report cell with `assets/Screenshot/report.png` once available.
+
+<details>
+<summary>📸 View All Screenshots (Full Size)</summary>
+
+### 📊 Dashboard
+<img src="assets/Screenshot/dashboard.png" alt="Dashboard Screenshot"/>
+
+### 👥 Employee Management
+<img src="assets/Screenshot/employee.png" alt="Employee Management Screenshot"/>
+
+### 📋 Attendance Log
+<img src="assets/Screenshot/attendance-log.png" alt="Attendance Log Screenshot"/>
+
+</details>
 
 ---
 
@@ -140,9 +146,13 @@ Tip: Take screenshots with Win+Shift+S and save as:
 ```text
 Payroll Management/
 ├── assets/
-│   ├── icon.ico          # App icon (Taskbar / EXE)
-│   ├── about-icon.png    # GitHub README logo (1080 KB)
-│   └── developer.jpg     # Developer photo
+│   ├── icon.ico              # App icon (Taskbar / EXE)
+│   ├── about-icon.png        # GitHub README logo (1080 KB)
+│   ├── developer.jpg         # Developer photo
+│   └── Screenshot/
+│       ├── dashboard.png     # Dashboard screenshot
+│       ├── employee.png      # Employee Management screenshot
+│       └── attendance-log.png # Attendance Log screenshot
 ├── Data/
 │   ├── DbConfig.cs               # ConnectionString + fallback logic + TestConnection
 │   └── AttendanceRepository.cs   # All SQL queries (Dashboard, Employees, Attendance)
@@ -301,22 +311,21 @@ And in `MainWindow.xaml:7`:
 </p>
 
 <p align="center">
-  <b>Sajedur Rahman</b><br/>
-  <i>Full-Stack Developer • WPF • .NET • SQL Server</i>
+  <b>Md Sajedur Rahman Roni</b>
 </p>
 
 <p align="center">
   <a href="https://github.com/Sajedur0">
     <img src="https://img.shields.io/badge/GitHub-Sajedur0-181717?style=for-the-badge&logo=github&logoColor=white" alt="GitHub"/>
   </a>
-  <a href="mailto:31769074+Sajedur0@users.noreply.github.com">
+  <a href="mailto:sajedurzero@gmail.com">
     <img src="https://img.shields.io/badge/Email-Contact-D14836?style=for-the-badge&logo=gmail&logoColor=white" alt="Email"/>
   </a>
 </p>
 
 > **Payroll Management** is crafted with ❤️ for HR teams who need a fast, offline, secure Windows solution.  
 > Logo & icons: `assets/about-icon.png` (180px, circular, blue-green gradient with payroll symbols).  
-> Developer photo: `assets/about-icon.png` (as requested) — replace with `assets/developer.jpg` if you prefer a personal photo:
+> Developer photo: `assets/developer.jpg` (as requested) — replace with `assets/developer.jpg` if you prefer a personal photo:
 >
 > ```md
 > <img src="assets/developer.jpg" width="140" style="border-radius:50%" />
