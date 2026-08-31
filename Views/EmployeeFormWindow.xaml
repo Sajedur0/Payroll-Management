@@ -1,0 +1,276 @@
+﻿<Window x:Class="DashboardApp.Views.EmployeeFormWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Employee Form" Height="730" Width="880"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="CanResizeWithGrip"
+        Background="{StaticResource BackgroundBrush}">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <Border Grid.Row="0" Background="#1E1B4B" Padding="20,16">
+            <Grid>
+                <StackPanel>
+                    <TextBlock Text="{Binding FormTitle}" FontSize="18" FontWeight="Bold" Foreground="White"/>
+                    <TextBlock Text="AttendanceDB • dbo.EmployeeInfo" FontSize="11" Foreground="#C7D2FE" Margin="0,3,0,0"/>
+                </StackPanel>
+                <Border Background="#312E81" CornerRadius="6" HorizontalAlignment="Right" VerticalAlignment="Center" Padding="10,4">
+                    <TextBlock Text="{Binding FormModeSubtitle}" FontSize="11" Foreground="#A5B4FC" FontWeight="SemiBold"/>
+                </Border>
+            </Grid>
+        </Border>
+
+        <!-- Form Body -->
+        <ScrollViewer Grid.Row="1" Padding="20" VerticalScrollBarVisibility="Auto">
+            <StackPanel>
+
+                <!-- Error / Success in Modal -->
+                <Border Background="#FEE2E2" CornerRadius="8" Padding="12,8" Margin="0,0,0,12">
+                    <Border.Style>
+                        <Style TargetType="Border">
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding HasFormError}" Value="True"><Setter Property="Visibility" Value="Visible"/></DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Border.Style>
+                    <TextBlock Text="{Binding FormErrorMessage}" Foreground="#991B1B" FontSize="12" FontWeight="SemiBold" TextWrapping="Wrap"/>
+                </Border>
+
+                <!-- Card 1: Basic & Identification -->
+                <Border Background="White" CornerRadius="10" Padding="16" Margin="0,0,0,14">
+                    <Border.Effect>
+                        <DropShadowEffect BlurRadius="10" ShadowDepth="1" Opacity="0.06" Color="Black"/>
+                    </Border.Effect>
+                    <StackPanel>
+                        <TextBlock Text="1. Basic &amp; Identity Information" FontSize="13" FontWeight="Bold" Foreground="#4F46E5" Margin="0,0,0,10"/>
+                        <Grid Margin="0,0,0,10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="90"/>
+                                <ColumnDefinition Width="140"/>
+                                <ColumnDefinition Width="2*"/>
+                                <ColumnDefinition Width="130"/>
+                            </Grid.ColumnDefinitions>
+
+                            <!-- SL -->
+                            <StackPanel Grid.Column="0" Margin="0,0,8,0">
+                                <TextBlock Text="SL" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,4"/>
+                                <TextBox Text="{Binding SL}" IsReadOnly="True" Background="#F3F4F6" Foreground="{StaticResource TextSecondaryBrush}" Padding="8,6" BorderBrush="#E5E7EB">
+                                    <TextBox.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style></TextBox.Resources>
+                                </TextBox>
+                            </StackPanel>
+
+                            <!-- EmpID * -->
+                            <StackPanel Grid.Column="1" Margin="0,0,8,0">
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                                    <TextBlock Text="EmpID" FontSize="11" Foreground="{StaticResource TextPrimaryBrush}" FontWeight="SemiBold"/>
+                                    <TextBlock Text=" *" Foreground="#DC2626" FontSize="11"/>
+                                </StackPanel>
+                                <TextBox Text="{Binding EmpIDText, UpdateSourceTrigger=PropertyChanged}" Padding="8,6" BorderBrush="#E5E7EB">
+                                    <TextBox.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style></TextBox.Resources>
+                                </TextBox>
+                            </StackPanel>
+
+                            <!-- Name * -->
+                            <StackPanel Grid.Column="2" Margin="0,0,8,0">
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                                    <TextBlock Text="Name" FontSize="11" Foreground="{StaticResource TextPrimaryBrush}" FontWeight="SemiBold"/>
+                                    <TextBlock Text=" *" Foreground="#DC2626" FontSize="11"/>
+                                </StackPanel>
+                                <TextBox Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" Padding="8,6" BorderBrush="#E5E7EB">
+                                    <TextBox.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style></TextBox.Resources>
+                                </TextBox>
+                            </StackPanel>
+
+                            <!-- Gender -->
+                            <StackPanel Grid.Column="3">
+                                <TextBlock Text="Gender" FontSize="11" Foreground="{StaticResource TextPrimaryBrush}" FontWeight="SemiBold" Margin="0,0,0,4"/>
+                                <ComboBox ItemsSource="{Binding GenderList}" SelectedItem="{Binding Gender, UpdateSourceTrigger=PropertyChanged}" Padding="6,5" BorderBrush="#E5E7EB"/>
+                            </StackPanel>
+                        </Grid>
+
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="2*"/>
+                                <ColumnDefinition Width="140"/>
+                                <ColumnDefinition Width="180"/>
+                            </Grid.ColumnDefinitions>
+
+                            <!-- FatherName -->
+                            <StackPanel Grid.Column="0" Margin="0,0,8,0">
+                                <TextBlock Text="FatherName" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,4"/>
+                                <TextBox Text="{Binding FatherName, UpdateSourceTrigger=PropertyChanged}" Padding="8,6" BorderBrush="#E5E7EB">
+                                    <TextBox.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style></TextBox.Resources>
+                                </TextBox>
+                            </StackPanel>
+
+                            <!-- Religion -->
+                            <StackPanel Grid.Column="1" Margin="0,0,8,0">
+                                <TextBlock Text="Religion" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,4"/>
+                                <ComboBox ItemsSource="{Binding ReligionList}" SelectedItem="{Binding Religion, UpdateSourceTrigger=PropertyChanged}" IsEditable="True" Padding="6,5" BorderBrush="#E5E7EB"/>
+                            </StackPanel>
+
+                            <!-- NID -->
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="NID (National ID)" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,4"/>
+                                <TextBox Text="{Binding NID, UpdateSourceTrigger=PropertyChanged}" Padding="8,6" BorderBrush="#E5E7EB">
+                                    <TextBox.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style></TextBox.Resources>
+                                </TextBox>
+                            </StackPanel>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <!-- Card 2: Job & Department -->
+                <Border Background="White" CornerRadius="10" Padding="16" Margin="0,0,0,14">
+                    <Border.Effect>
+                        <DropShadowEffect BlurRadius="10" ShadowDepth="1" Opacity="0.06" Color="Black"/>
+                    </Border.Effect>
+                    <StackPanel>
+                        <TextBlock Text="2. Department, Designation &amp; Duty Settings" FontSize="13" FontWeight="Bold" Foreground="#4F46E5" Margin="0,0,0,10"/>
+                        <Grid Margin="0,0,0,10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="110"/>
+                            </Grid.ColumnDefinitions>
+
+                            <!-- Department * -->
+                            <StackPanel Grid.Column="0" Margin="0,0,8,0">
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                                    <TextBlock Text="Department" FontSize="11" Foreground="{StaticResource TextPrimaryBrush}" FontWeight="SemiBold"/>
+                                    <TextBlock Text=" *" Foreground="#DC2626" FontSize="11"/>
+                                </StackPanel>
+                                <ComboBox ItemsSource="{Binding DepartmentList}" Text="{Binding Department, UpdateSourceTrigger=PropertyChanged}" IsEditable="True" Padding="6,5" BorderBrush="#E5E7EB"/>
+                            </StackPanel>
+
+                            <!-- Section -->
+                            <StackPanel Grid.Column="1" Margin="0,0,8,0">
+                                <TextBlock Text="Section" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,4"/>
+                                <TextBox Text="{Binding Section, UpdateSourceTrigger=PropertyChanged}" Padding="8,6" BorderBrush="#E5E7EB">
+                                    <TextBox.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style></TextBox.Resources>
+                                </TextBox>
+                            </StackPanel>
+
+                            <!-- Designation -->
+                            <StackPanel Grid.Column="2" Margin="0,0,8,0">
+                                <TextBlock Text="Designation" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,4"/>
+                                <TextBox Text="{Binding Designation, UpdateSourceTrigger=PropertyChanged}" Padding="8,6" BorderBrush="#E5E7EB">
+                                    <TextBox.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style></TextBox.Resources>
+                                </TextBox>
+                            </StackPanel>
+
+                            <!-- Shift -->
+                            <StackPanel Grid.Column="3">
+                                <TextBlock Text="Shift" FontSize="11" Foreground="{StaticResource TextPrimaryBrush}" FontWeight="SemiBold" Margin="0,0,0,4"/>
+                                <ComboBox ItemsSource="{Binding ShiftList}" SelectedItem="{Binding Shift, UpdateSourceTrigger=PropertyChanged}" IsEditable="True" Padding="6,5" BorderBrush="#E5E7EB"/>
+                            </StackPanel>
+                        </Grid>
+
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <!-- Category -->
+                            <StackPanel Grid.Column="0" Margin="0,0,8,0">
+                                <TextBlock Text="Category" FontSize="11" Foreground="{StaticResource TextPrimaryBrush}" FontWeight="SemiBold" Margin="0,0,0,4"/>
+                                <ComboBox ItemsSource="{Binding CategoryList}" SelectedItem="{Binding Category, UpdateSourceTrigger=PropertyChanged}" IsEditable="True" Padding="6,5" BorderBrush="#E5E7EB"/>
+                            </StackPanel>
+
+                            <!-- Status -->
+                            <StackPanel Grid.Column="1" Margin="0,0,8,0">
+                                <TextBlock Text="Status" FontSize="11" Foreground="{StaticResource TextPrimaryBrush}" FontWeight="SemiBold" Margin="0,0,0,4"/>
+                                <ComboBox ItemsSource="{Binding StatusList}" SelectedItem="{Binding Status, UpdateSourceTrigger=PropertyChanged}" IsEditable="True" Padding="6,5" BorderBrush="#E5E7EB"/>
+                            </StackPanel>
+
+                            <!-- DOJ -->
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="DOJ (Joining Date)" FontSize="11" Foreground="{StaticResource TextPrimaryBrush}" FontWeight="SemiBold" Margin="0,0,0,4"/>
+                                <DatePicker SelectedDate="{Binding DOJDate}" Padding="4,4" BorderBrush="#E5E7EB"/>
+                            </StackPanel>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <!-- Card 3: Payroll & Address -->
+                <Border Background="White" CornerRadius="10" Padding="16">
+                    <Border.Effect>
+                        <DropShadowEffect BlurRadius="10" ShadowDepth="1" Opacity="0.06" Color="Black"/>
+                    </Border.Effect>
+                    <StackPanel>
+                        <TextBlock Text="3. Salary, Account &amp; Contact Address" FontSize="13" FontWeight="Bold" Foreground="#4F46E5" Margin="0,0,0,10"/>
+                        <Grid Margin="0,0,0,10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <!-- GrossWages -->
+                            <StackPanel Grid.Column="0" Margin="0,0,8,0">
+                                <TextBlock Text="GrossWages (Salary)" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,4"/>
+                                <TextBox Text="{Binding GrossWagesText, UpdateSourceTrigger=PropertyChanged}" Padding="8,6" BorderBrush="#E5E7EB">
+                                    <TextBox.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style></TextBox.Resources>
+                                </TextBox>
+                            </StackPanel>
+
+                            <!-- RocketAC -->
+                            <StackPanel Grid.Column="1">
+                                <TextBlock Text="RocketAC (Account No)" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,4"/>
+                                <TextBox Text="{Binding RocketAC, UpdateSourceTrigger=PropertyChanged}" Padding="8,6" BorderBrush="#E5E7EB">
+                                    <TextBox.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style></TextBox.Resources>
+                                </TextBox>
+                            </StackPanel>
+                        </Grid>
+
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <!-- PresAddress -->
+                            <StackPanel Grid.Column="0" Margin="0,0,8,0">
+                                <TextBlock Text="PresAddress (Present Address)" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,4"/>
+                                <TextBox Text="{Binding PresAddress, UpdateSourceTrigger=PropertyChanged}" Padding="8,6" BorderBrush="#E5E7EB">
+                                    <TextBox.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style></TextBox.Resources>
+                                </TextBox>
+                            </StackPanel>
+
+                            <!-- PermAddress -->
+                            <StackPanel Grid.Column="1">
+                                <TextBlock Text="PermAddress (Permanent Address)" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,4"/>
+                                <TextBox Text="{Binding PermAddress, UpdateSourceTrigger=PropertyChanged}" Padding="8,6" BorderBrush="#E5E7EB">
+                                    <TextBox.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style></TextBox.Resources>
+                                </TextBox>
+                            </StackPanel>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- Footer Buttons -->
+        <Border Grid.Row="2" Background="White" Padding="20,14" BorderThickness="0,1,0,0" BorderBrush="#E5E7EB">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button Content="❌ Cancel" Click="Cancel_Click" Padding="18,8" Background="White" Foreground="#4B5563" BorderBrush="#D1D5DB" BorderThickness="1" Cursor="Hand" Margin="0,0,10,0">
+                    <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style></Button.Resources>
+                </Button>
+                <Button Content="{Binding SubmitButtonText}" Click="Submit_Click" Padding="24,8" Background="#4F46E5" Foreground="White" BorderThickness="0" Cursor="Hand" FontWeight="SemiBold">
+                    <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style></Button.Resources>
+                </Button>
+            </StackPanel>
+        </Border>
+    </Grid>
+</Window>
+
+

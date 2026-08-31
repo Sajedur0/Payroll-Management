@@ -1,0 +1,89 @@
+﻿<UserControl x:Class="DashboardApp.Views.AdminToolsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <ScrollViewer Padding="25" Background="{StaticResource BackgroundBrush}">
+        <StackPanel>
+            <Border Background="White" CornerRadius="12" Padding="20" Margin="0,0,0,15">
+                <Border.Effect>
+                    <DropShadowEffect BlurRadius="15" ShadowDepth="2" Opacity="0.08" Color="Black"/>
+                </Border.Effect>
+                <StackPanel>
+                    <TextBlock Text="Admin Tools" FontSize="22" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                    <TextBlock Text="AttendanceDB • MS SQL Server Management" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,4,0,0"/>
+                    <TextBlock TextWrapping="Wrap" Margin="0,12,0,0" Foreground="#374151" FontSize="13">
+                        Database: <Bold>AttendanceDB</Bold>  — All data is loaded from this database.
+                    </TextBlock>
+                </StackPanel>
+            </Border>
+
+            <!-- DB Connection Info -->
+            <Border Background="White" CornerRadius="12" Padding="20" Margin="0,0,0,15">
+                <StackPanel>
+                    <TextBlock Text="Database Connection" FontWeight="Bold" FontSize="14" Foreground="{StaticResource TextPrimaryBrush}"/>
+                    <TextBlock Text="App.config &gt; connectionStrings &gt; AttendanceDB" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,2,0,10"/>
+                    <Border Background="#F3F4F6" CornerRadius="8" Padding="12">
+                        <TextBlock x:Name="ConnectionStringText" FontFamily="Consolas" FontSize="11" Foreground="#1F2937" TextWrapping="Wrap"
+                                   Text="Server=.\SQLEXPRESS;Database=AttendanceDB;Trusted_Connection=True;TrustServerCertificate=True;"/>
+                    </Border>
+                    <TextBlock Text="• To change Server, edit App.config and restart the App.&#x0a;• Fallback: .\SQLEXPRESS → (localdb)\MSSQLLocalDB → . → localhost will be tried automatically." 
+                               FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,10,0,0" TextWrapping="Wrap"/>
+                    <StackPanel Orientation="Horizontal" Margin="0,14,0,0">
+                        <Button Content="Test Connection" Click="TestConnection_Click" Padding="16,7" Background="#4F46E5" Foreground="White" BorderThickness="0" Cursor="Hand" Margin="0,0,10,0">
+                            <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style></Button.Resources>
+                        </Button>
+                        <Button Content="Open SQL Script Folder" Click="OpenScript_Click" Padding="16,7" Background="White" Foreground="#4F46E5" BorderBrush="#4F46E5" BorderThickness="1" Cursor="Hand">
+                            <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style></Button.Resources>
+                        </Button>
+                    </StackPanel>
+                    <TextBlock x:Name="TestResultText" FontSize="12" Margin="0,10,0,0" TextWrapping="Wrap"/>
+                </StackPanel>
+            </Border>
+
+            <!-- Setup Instructions -->
+            <Border Background="White" CornerRadius="12" Padding="20" Margin="0,0,0,15">
+                <StackPanel>
+                    <TextBlock Text="Setup Instructions (First Time)" FontWeight="Bold" FontSize="14" Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,10"/>
+                    <TextBlock FontSize="12.5" Foreground="#374151" TextWrapping="Wrap" LineHeight="20">
+                        1. Open SQL Server Management Studio (SSMS) and connect to the SQL Server instance (.\SQLEXPRESS).<LineBreak/>
+                        2. Open <Bold>Database\AttendanceDB.sql</Bold> via <Bold>File → Open → File</Bold> and click <Bold>Execute (F5)</Bold>.<LineBreak/>
+                        3. If successful, the AttendanceDB database will be created with Sample Data (8 Employees + Attendance + ActivityLog).<LineBreak/>
+                        4. Run the App — Dashboard, Attendance Log, Report will all show live data from AttendanceDB.<LineBreak/>
+                        5. If using LocalDB, set Server=(localdb)\MSSQLLocalDB in App.config.<LineBreak/>
+                    </TextBlock>
+                    <Border Background="#EEF2FF" CornerRadius="8" Padding="12" Margin="0,12,0,0">
+                        <TextBlock FontSize="11" Foreground="#4338CA" TextWrapping="Wrap">
+                            SQL Script Location: <Bold>Database\AttendanceDB.sql</Bold>  (in project root)&#x0a;View/Procedure: vw_DashboardSummary, vw_WeeklyAttendance, sp_GetDashboardData, sp_GetAttendanceLog
+                        </TextBlock>
+                    </Border>
+                </StackPanel>
+            </Border>
+
+            <!-- Tables Info -->
+            <Border Background="White" CornerRadius="12" Padding="20">
+                <StackPanel>
+                    <TextBlock Text="Tables Overview" FontWeight="Bold" FontSize="14" Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,10"/>
+                    <Grid>
+                        <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition/></Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0" Margin="0,0,10,0">
+                            <Border Background="#F9FAFB" CornerRadius="6" Padding="10" Margin="0,0,0,6">
+                                <StackPanel><TextBlock Text="dbo.EmployeeInfo" FontWeight="SemiBold" FontSize="12"/><TextBlock Text="SL, Name, EmpID, Gender, Designation, Section, Department, Shift, Category, Status, RocketAC, GrossWages, Religion, DOJ, FatherName, NID, PermAddress, PresAddress" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap"/></StackPanel>
+                            </Border>
+                            <Border Background="#F9FAFB" CornerRadius="6" Padding="10" Margin="0,0,0,6">
+                                <StackPanel><TextBlock Text="dbo.Attendance" FontWeight="SemiBold" FontSize="12"/><TextBlock Text="AttendanceId, EmployeeId, AttendanceDate, CheckIn, CheckOut, Status, WorkHours" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap"/></StackPanel>
+                            </Border>
+                        </StackPanel>
+                        <StackPanel Grid.Column="1">
+                            <Border Background="#F9FAFB" CornerRadius="6" Padding="10" Margin="0,0,0,6">
+                                <StackPanel><TextBlock Text="dbo.Leaves" FontWeight="SemiBold" FontSize="12"/><TextBlock Text="LeaveId, EmployeeId, LeaveType, StartDate, EndDate, Status" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap"/></StackPanel>
+                            </Border>
+                            <Border Background="#F9FAFB" CornerRadius="6" Padding="10" Margin="0,0,0,6">
+                                <StackPanel><TextBlock Text="dbo.ActivityLog" FontWeight="SemiBold" FontSize="12"/><TextBlock Text="LogId, Description, LogTime, EmployeeId" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap"/></StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </Grid>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>
+

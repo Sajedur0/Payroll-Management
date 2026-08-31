@@ -1,0 +1,114 @@
+# =====================================================
+# .NET WPF - Payroll CSharp - AttendanceDB
+# =====================================================
+
+## Build results
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+[Ww][Ii][Nn]32/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+
+## Publish
+publish/
+publish-single/
+publish-selfcontained/
+PublishProfiles/
+
+## MSTest
+TestResult.xml
+[Tt]est[Rr]esult*/
+
+## Visual Studio
+.vs/
+*.rsuser
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.userprefs
+*.dbmdl
+*.dbproj.schemaview
+*.jfm
+*.pfx
+*.publishsettings
+
+## Rider
+.idea/
+*.sln.iml
+
+## VS Code
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+!.vscode/*.code-snippets
+.history/
+*.code-workspace
+
+## NuGet
+*.nupkg
+**/[Pp]ackages/*
+!**/[Pp]ackages/build/
+!**/[Pp]ackages/repositories.config
+*.nuget.props
+*.nuget.targets
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+## SQL Server / AttendanceDB
+*.mdf
+*.ldf
+*.ndf
+*.bak
+*.trn
+App_Data/
+*.db
+*.sqlite
+*.sqlite3
+
+## Local Config / Secrets
+appsettings.local.json
+appsettings.Development.json
+secrets.json
+*.pfx
+*.key
+*.crt
+ConnectionStrings.config
+
+## OS
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.lnk
+.DS_Store
+.AppleDouble
+.LSOverride
+
+## Logs
+*.log
+*.tlog
+
+## Temporary
+*~ 
+*.tmp
+*.temp
+*.swp
+*.*~
+~$*
+
+## Keep SQL script
+!Database/AttendanceDB.sql
+!Database/*.sql
