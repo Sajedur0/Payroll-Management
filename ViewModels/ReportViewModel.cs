@@ -1,10 +1,10 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
-using DashboardApp.Data;
-using DashboardApp.Models;
+using PayrollManagement.Data;
+using PayrollManagement.Models;
 
-namespace DashboardApp.ViewModels
+namespace PayrollManagement.ViewModels
 {
     public class ReportViewModel : INotifyPropertyChanged
     {
@@ -45,7 +45,7 @@ namespace DashboardApp.ViewModels
             }
             catch (Exception ex)
             {
-                ErrorMessage = $"DB Error: {ex.Message}";
+                ErrorMessage = $"Error: {ex.Message}";
             }
             finally { IsLoading = false; }
         }

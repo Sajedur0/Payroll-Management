@@ -1,9 +1,10 @@
-﻿<Window x:Class="DashboardApp.MainWindow"
+﻿<Window x:Class="PayrollManagement.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Attendance Management System" Height="720" Width="1200"
+        Title="Payroll Management" Height="720" Width="1200"
         WindowStartupLocation="CenterScreen"
-        Background="{StaticResource BackgroundBrush}">
+        Background="{StaticResource BackgroundBrush}"
+        Icon="assets/icon.ico">
 
     <Grid>
         <Grid.ColumnDefinitions>
@@ -14,7 +15,7 @@
         <!-- Sidebar -->
         <Border Grid.Column="0" Background="{StaticResource SidebarBrush}">
             <StackPanel Margin="0,25,0,0">
-                <TextBlock Text="⏱ AttendSys" Foreground="White" FontSize="20"
+                <TextBlock Text="💼 Payroll Management" Foreground="White" FontSize="20"
                            FontWeight="Bold" Margin="20,0,0,35"/>
 
                 <Button Content="🏠  Dashboard" Style="{StaticResource SidebarButton}"

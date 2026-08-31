@@ -1,4 +1,4 @@
-namespace DashboardApp.Models
+namespace PayrollManagement.Models
 {
     public class DashboardSummary
     {

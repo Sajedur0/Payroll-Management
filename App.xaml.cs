@@ -1,6 +1,6 @@
 ﻿using System.Windows;
 
-namespace DashboardApp
+namespace PayrollManagement
 {
     public partial class App : Application
     {

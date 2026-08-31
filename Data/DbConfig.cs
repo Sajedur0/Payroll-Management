@@ -1,7 +1,7 @@
 using System.Configuration;
 using Microsoft.Data.SqlClient;
 
-namespace DashboardApp.Data
+namespace PayrollManagement.Data
 {
     public static class DbConfig
     {

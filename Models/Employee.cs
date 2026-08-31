@@ -1,7 +1,7 @@
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
-namespace DashboardApp.Models
+namespace PayrollManagement.Models
 {
     public class Employee : INotifyPropertyChanged
     {

@@ -1,7 +1,7 @@
 ﻿using System.Windows;
-using DashboardApp.Views;
+using PayrollManagement.Views;
 
-namespace DashboardApp
+namespace PayrollManagement
 {
     public partial class MainWindow : Window
     {

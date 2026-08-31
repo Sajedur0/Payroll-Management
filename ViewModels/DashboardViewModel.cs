@@ -4,10 +4,10 @@ using System.Runtime.CompilerServices;
 using System.Windows;
 using LiveChartsCore;
 using LiveChartsCore.SkiaSharpView;
-using DashboardApp.Data;
-using DashboardApp.Models;
+using PayrollManagement.Data;
+using PayrollManagement.Models;
 
-namespace DashboardApp.ViewModels
+namespace PayrollManagement.ViewModels
 {
     // Legacy compatibility
     public class ActivityItem
@@ -53,7 +53,7 @@ namespace DashboardApp.ViewModels
         public string? ErrorMessage { get => _errorMessage; set { _errorMessage = value; OnPropertyChanged(); OnPropertyChanged(nameof(HasError)); OnPropertyChanged(nameof(StatusMessage)); } }
 
         public bool HasError => !string.IsNullOrEmpty(ErrorMessage);
-        public string StatusMessage => IsLoading ? "Loading data from AttendanceDB..." : (HasError ? ErrorMessage! : $"DB: AttendanceDB | Last refresh: {DateTime.Now:T}");
+        public string StatusMessage => IsLoading ? "Loading data..." : (HasError ? ErrorMessage! : $"Last refresh: {DateTime.Now:T}");
 
         public RelayCommand RefreshCommand { get; }
 
@@ -79,7 +79,7 @@ namespace DashboardApp.ViewModels
 
             RefreshCommand = new RelayCommand(async _ => await LoadAsync());
 
-            // Auto load from AttendanceDB
+            // Auto load
             _ = LoadAsync();
         }
 
@@ -124,7 +124,7 @@ namespace DashboardApp.ViewModels
             }
             catch (Exception ex)
             {
-                ErrorMessage = $"DB Error: {ex.Message}";
+                ErrorMessage = $"Error: {ex.Message}";
                 // Fallback dummy data so UI not blank
                 LoadFallbackData();
             }

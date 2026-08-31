@@ -1,7 +1,7 @@
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
-namespace DashboardApp.ViewModels
+namespace PayrollManagement.ViewModels
 {
     public class MainViewModel : INotifyPropertyChanged
     {

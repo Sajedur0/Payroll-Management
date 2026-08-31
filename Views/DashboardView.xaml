@@ -1,4 +1,4 @@
-<UserControl x:Class="DashboardApp.Views.DashboardView"
+<UserControl x:Class="PayrollManagement.Views.DashboardView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:lvc="clr-namespace:LiveChartsCore.SkiaSharpView.WPF;assembly=LiveChartsCore.SkiaSharpView.WPF">
@@ -17,10 +17,10 @@
                                Foreground="{StaticResource TextPrimaryBrush}"/>
                     <TextBlock Text="Welcome! See today's overall overview" FontSize="13"
                                Foreground="{StaticResource TextSecondaryBrush}" Margin="0,4,0,0"/>
-                    <!-- DB Status -->
+                    <!-- Status -->
                     <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
                         <TextBlock Text="{Binding StatusMessage}" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
-                        <TextBlock Text="  •  AttendanceDB (MS SQL)" FontSize="11" Foreground="#4F46E5" Margin="6,0,0,0" VerticalAlignment="Center" FontWeight="SemiBold"/>
+                        <TextBlock Text="  •  Live Data" FontSize="11" Foreground="#4F46E5" Margin="6,0,0,0" VerticalAlignment="Center" FontWeight="SemiBold"/>
                     </StackPanel>
                 </StackPanel>
                 <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">

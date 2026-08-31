@@ -4,11 +4,11 @@ using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Windows;
 using Microsoft.Win32;
-using DashboardApp.Data;
-using DashboardApp.Models;
-using DashboardApp.Views;
+using PayrollManagement.Data;
+using PayrollManagement.Models;
+using PayrollManagement.Views;
 
-namespace DashboardApp.ViewModels
+namespace PayrollManagement.ViewModels
 {
     public class EmployeeViewModel : INotifyPropertyChanged
     {
@@ -43,7 +43,7 @@ namespace DashboardApp.ViewModels
             set { _searchText = value; OnPropertyChanged(); }
         }
 
-        // ===== Form Dialog Properties (dbo.EmployeeInfo 18 columns) =====
+        // ===== Form Dialog Properties =====
         private int _sl;
         public int SL { get => _sl; set { _sl = value; OnPropertyChanged(); OnPropertyChanged(nameof(IsEditMode)); } }
 
@@ -188,11 +188,11 @@ namespace DashboardApp.ViewModels
             {
                 var list = await _repo.GetEmployeesAsync(string.IsNullOrWhiteSpace(SearchText) ? null : SearchText);
                 Employees = new ObservableCollection<Employee>(list);
-                SuccessMessage = $"{list.Count} employees loaded from AttendanceDB.dbo.EmployeeInfo";
+                SuccessMessage = $"{list.Count} employees loaded";
             }
             catch (Exception ex)
             {
-                ErrorMessage = $"DB Error: {ex.Message}";
+                ErrorMessage = $"Error: {ex.Message}";
                 Employees = new ObservableCollection<Employee>();
             }
             finally { IsLoading = false; }
@@ -380,7 +380,7 @@ namespace DashboardApp.ViewModels
             catch (Exception ex)
             {
                 if (ex.Message.Contains("UNIQUE") || ex.Message.Contains("duplicate") || ex.Message.Contains("UQ__Employee__AF2DBA78"))
-                    FormErrorMessage = $"EmpID '{empId}' already exists in the database. Please use a different EmpID.";
+                    FormErrorMessage = $"EmpID '{empId}' already exists. Please use a different EmpID.";
                 else
                     FormErrorMessage = $"Save failed: {ex.Message}";
                 return false;

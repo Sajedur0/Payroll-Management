@@ -1,20 +1,20 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
-using DashboardApp.Data;
-using DashboardApp.Models;
+using PayrollManagement.Data;
+using PayrollManagement.Models;
 
-namespace DashboardApp.ViewModels
+namespace PayrollManagement.ViewModels
 {
     public class AttendanceLogViewModel : INotifyPropertyChanged
     {
         private readonly AttendanceRepository _repo = new();
 
-        // === RawData Records (from AttendanceDB.dbo.RawData) ===
+        // === Attendance Records ===
         private ObservableCollection<RawAttendanceData> _rawRecords = new();
         public ObservableCollection<RawAttendanceData> RawRecords { get => _rawRecords; set { _rawRecords = value; OnPropertyChanged(); } }
 
-        // === Attendance Records (existing from dbo.Attendance) ===
+        // === Attendance Records ===
         private ObservableCollection<AttendanceRecord> _records = new();
         public ObservableCollection<AttendanceRecord> Records { get => _records; set { _records = value; OnPropertyChanged(); } }
 
@@ -68,7 +68,7 @@ namespace DashboardApp.ViewModels
         }
 
         /// <summary>
-        /// Loads data from RawData table and displays in DataGrid
+        /// Loads attendance data and displays in DataGrid
         /// </summary>
         public async Task LoadAsync()
         {
@@ -81,18 +81,18 @@ namespace DashboardApp.ViewModels
                 var list = await _repo.GetRawDataAsync(FromDate, ToDate, string.IsNullOrWhiteSpace(SearchText) ? null : SearchText);
                 RawRecords = new ObservableCollection<RawAttendanceData>(list);
                 if (list.Count == 0)
-                    ErrorMessage = "No RawData found in the selected date range.";
+                    ErrorMessage = "No records found in the selected date range.";
             }
             catch (Exception ex)
             {
-                ErrorMessage = $"DB Error: {ex.Message}";
+                ErrorMessage = $"Error: {ex.Message}";
                 RawRecords = new ObservableCollection<RawAttendanceData>();
             }
             finally { IsLoading = false; }
         }
 
         /// <summary>
-        /// Reads data from FACEIDDB.KQZ_Card and saves to AttendanceDB.RawData with live progress reporting
+        /// Loads external attendance data with live progress reporting
         /// </summary>
         public async Task LoadFromFaceIdDbAsync()
         {
@@ -100,7 +100,7 @@ namespace DashboardApp.ViewModels
             IsLoadingFaceId = true;
             IsProgressVisible = true;
             ProgressValue = 0;
-            ProgressText = "Connecting to FACEIDDB...";
+            ProgressText = "Connecting to data source...";
             ProgressPercentageText = "0%";
             ErrorMessage = null;
             SuccessMessage = null;
@@ -128,19 +128,19 @@ namespace DashboardApp.ViewModels
                     ProgressValue = 100;
                     ProgressPercentageText = "100%";
                     ProgressText = $"✓ Completed: {count} of {count} records loaded (0 remaining)";
-                    SuccessMessage = $"✓ Success! {count} attendance records loaded from FACEIDDB to RawData ({FromDate:yyyy-MM-dd} ~ {ToDate:yyyy-MM-dd})";
+                    SuccessMessage = $"✓ Success! {count} attendance records loaded ({FromDate:yyyy-MM-dd} ~ {ToDate:yyyy-MM-dd})";
                     
                     // Refresh DataGrid
                     await LoadAsync();
                 }
                 else
                 {
-                    ErrorMessage = $"No attendance data found in FACEIDDB for the date range {FromDate:yyyy-MM-dd} ~ {ToDate:yyyy-MM-dd}.";
+                    ErrorMessage = $"No attendance data found for the date range {FromDate:yyyy-MM-dd} ~ {ToDate:yyyy-MM-dd}.";
                 }
             }
             catch (Exception ex)
             {
-                ErrorMessage = $"FACEIDDB Error: {ex.Message}";
+                ErrorMessage = $"Error: {ex.Message}";
             }
             finally
             {

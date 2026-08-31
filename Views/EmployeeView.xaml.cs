@@ -1,8 +1,8 @@
 using System.Windows.Controls;
 using System.Windows.Input;
-using DashboardApp.ViewModels;
+using PayrollManagement.ViewModels;
 
-namespace DashboardApp.Views
+namespace PayrollManagement.Views
 {
     public partial class EmployeeView : UserControl
     {

@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
@@ -6,8 +6,18 @@
     <Nullable>enable</Nullable>
     <UseWPF>true</UseWPF>
     <ImplicitUsings>enable</ImplicitUsings>
-    <ApplicationIcon></ApplicationIcon>
+    <ApplicationIcon>assets\icon.ico</ApplicationIcon>
+    <AssemblyName>Payroll Management</AssemblyName>
+    <RootNamespace>PayrollManagement</RootNamespace>
+    <AssemblyTitle>Payroll Management</AssemblyTitle>
+    <Product>Payroll Management</Product>
+    <Title>Payroll Management</Title>
+    <Description>Payroll Management</Description>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Resource Include="assets\icon.ico" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="ClosedXML" Version="0.105.1" />

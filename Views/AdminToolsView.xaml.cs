@@ -3,9 +3,9 @@ using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
-using DashboardApp.Data;
+using PayrollManagement.Data;
 
-namespace DashboardApp.Views
+namespace PayrollManagement.Views
 {
     public partial class AdminToolsView : UserControl
     {
@@ -32,18 +32,18 @@ namespace DashboardApp.Views
             var resultText = FindName("TestResultText") as TextBlock;
             if (resultText == null) return;
 
-            resultText.Text = "Testing AttendanceDB connection...";
+            resultText.Text = "Testing connection...";
             resultText.Foreground = new SolidColorBrush(Color.FromRgb(0x6B, 0x72, 0x80));
 
             bool ok = await DbConfig.TestConnectionAsync();
             if (ok)
             {
-                resultText.Text = "✓ Success! AttendanceDB is reachable. All data is being loaded live from the database.";
+                resultText.Text = "✓ Success! Connection is reachable. All data is being loaded live.";
                 resultText.Foreground = new SolidColorBrush(Color.FromRgb(0x05, 0x96, 0x69));
             }
             else
             {
-                resultText.Text = "✗ Failed! Could not connect to AttendanceDB. Please check if SQL Server is running, the database is created, and the Server name in App.config is correct.";
+                resultText.Text = "✗ Failed! Could not connect. Please check if the server is running and the configuration is correct.";
                 resultText.Foreground = new SolidColorBrush(Color.FromRgb(0xDC, 0x26, 0x26));
             }
         }

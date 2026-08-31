@@ -1,7 +1,7 @@
 using System.Windows;
-using DashboardApp.ViewModels;
+using PayrollManagement.ViewModels;
 
-namespace DashboardApp.Views
+namespace PayrollManagement.Views
 {
     public partial class EmployeeFormWindow : Window
     {

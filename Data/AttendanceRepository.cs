@@ -2,9 +2,9 @@ using System.Data;
 using System.Globalization;
 using Microsoft.Data.SqlClient;
 using ClosedXML.Excel;
-using DashboardApp.Models;
+using PayrollManagement.Models;
 
-namespace DashboardApp.Data
+namespace PayrollManagement.Data
 {
     public class AttendanceRepository
     {
@@ -15,7 +15,7 @@ namespace DashboardApp.Data
             var summary = new DashboardSummary();
 
             using var conn = await DbConfig.GetOpenConnectionAsync();
-            if (conn == null) throw new Exception("Failed to connect to AttendanceDB. Please check if SQL Server is running.");
+            if (conn == null) throw new Exception("Failed to connect to the server. Please check if the server is running.");
 
             // 1. Total active employees from dbo.EmployeeInfo
             try
@@ -248,7 +248,7 @@ namespace DashboardApp.Data
         {
             var list = new List<Employee>();
             using var conn = await DbConfig.GetOpenConnectionAsync();
-            if (conn == null) throw new Exception("Failed to connect to AttendanceDB.");
+            if (conn == null) throw new Exception("Failed to connect to the server.");
 
             var sql = @"
                 SELECT 
@@ -299,7 +299,7 @@ namespace DashboardApp.Data
         public async Task<int> AddEmployeeAsync(Employee emp)
         {
             using var conn = await DbConfig.GetOpenConnectionAsync();
-            if (conn == null) throw new Exception("Failed to connect to AttendanceDB.");
+            if (conn == null) throw new Exception("Failed to connect to the server.");
 
             var sql = @"
                 INSERT INTO dbo.EmployeeInfo (
@@ -340,7 +340,7 @@ namespace DashboardApp.Data
         public async Task UpdateEmployeeAsync(Employee emp)
         {
             using var conn = await DbConfig.GetOpenConnectionAsync();
-            if (conn == null) throw new Exception("Failed to connect to AttendanceDB.");
+            if (conn == null) throw new Exception("Failed to connect to the server.");
 
             var sql = @"
                 UPDATE dbo.EmployeeInfo SET 
@@ -390,7 +390,7 @@ namespace DashboardApp.Data
         public async Task DeleteEmployeeAsync(int sl)
         {
             using var conn = await DbConfig.GetOpenConnectionAsync();
-            if (conn == null) throw new Exception("Failed to connect to AttendanceDB.");
+            if (conn == null) throw new Exception("Failed to connect to the server.");
 
             using var cmd = new SqlCommand("DELETE FROM dbo.EmployeeInfo WHERE SL = @SL", conn);
             cmd.Parameters.AddWithValue("@SL", sl);
@@ -490,7 +490,7 @@ namespace DashboardApp.Data
                 throw new Exception("No valid employee data (with correct EmpID) found in the Excel file.");
 
             using var conn = await DbConfig.GetOpenConnectionAsync();
-            if (conn == null) throw new Exception("Failed to connect to AttendanceDB.");
+            if (conn == null) throw new Exception("Failed to connect to the server.");
 
             int inserted = 0;
             int updated = 0;
@@ -531,12 +531,12 @@ namespace DashboardApp.Data
         /// </summary>
         public async Task<int> LoadAttendanceFromFaceIdDbAsync(DateTime? fromDate = null, DateTime? toDate = null, IProgress<AttendanceLoadProgress>? progress = null)
         {
-            progress?.Report(new AttendanceLoadProgress { Processed = 0, Total = 0, Message = "Connecting to FACEIDDB..." });
+            progress?.Report(new AttendanceLoadProgress { Processed = 0, Total = 0, Message = "Connecting to data source..." });
 
             // Step 1: Read data from FACEIDDB
             using var faceConn = await DbConfig.GetFaceIdDbConnectionAsync();
             if (faceConn == null)
-                throw new Exception("Failed to connect to FACEIDDB. Please check if SQL Server is running and the FACEIDDB database exists.");
+                throw new Exception("Failed to connect to the external data source. Please check if the server is running.");
 
             var sql = @"
                 SELECT 
@@ -593,12 +593,12 @@ namespace DashboardApp.Data
                 return 0;
             }
 
-            progress?.Report(new AttendanceLoadProgress { Processed = 0, Total = total, Message = $"Found {total} records. Saving to AttendanceDB..." });
+            progress?.Report(new AttendanceLoadProgress { Processed = 0, Total = total, Message = $"Found {total} records. Saving..." });
 
             // Step 2: Save to AttendanceDB.dbo.RawData
             using var attConn = await DbConfig.GetOpenConnectionAsync();
             if (attConn == null)
-                throw new Exception("Failed to connect to AttendanceDB.");
+                throw new Exception("Failed to connect to the server.");
 
             // Create RawData table and index if they do not exist
             await EnsureRawDataTableAsync(attConn);
@@ -701,7 +701,7 @@ namespace DashboardApp.Data
                                 INSERT INTO dbo.ActivityLog (Description, LogTime) VALUES (@desc, GETDATE())
                             END", attConn, tx);
                         logCmd.Parameters.AddWithValue("@desc",
-                            $"{total} Attendance records loaded from FACEIDDB ({fromDate?.ToString("yyyy-MM-dd") ?? "All"} ~ {toDate?.ToString("yyyy-MM-dd") ?? "All"})");
+                            $"{total} attendance records loaded ({fromDate?.ToString("yyyy-MM-dd") ?? "All"} ~ {toDate?.ToString("yyyy-MM-dd") ?? "All"})");
                         await logCmd.ExecuteNonQueryAsync();
                     }
                     catch { /* Ignore */ }
@@ -753,7 +753,7 @@ namespace DashboardApp.Data
         {
             var list = new List<RawAttendanceData>();
             using var conn = await DbConfig.GetOpenConnectionAsync();
-            if (conn == null) throw new Exception("Failed to connect to AttendanceDB.");
+            if (conn == null) throw new Exception("Failed to connect to the server.");
 
             await EnsureRawDataTableAsync(conn);
 

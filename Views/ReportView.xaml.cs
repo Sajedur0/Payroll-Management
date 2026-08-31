@@ -1,7 +1,7 @@
 using System.Windows.Controls;
-using DashboardApp.ViewModels;
+using PayrollManagement.ViewModels;
 
-namespace DashboardApp.Views
+namespace PayrollManagement.Views
 {
     public partial class ReportView : UserControl
     {
