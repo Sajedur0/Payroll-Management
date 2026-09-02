@@ -17,24 +17,10 @@
                                Foreground="{StaticResource TextPrimaryBrush}"/>
                     <TextBlock Text="Welcome! See today's overall overview" FontSize="13"
                                Foreground="{StaticResource TextSecondaryBrush}" Margin="0,4,0,0"/>
-                    <!-- Status -->
-                    <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
-                        <TextBlock Text="{Binding StatusMessage}" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
-                        <TextBlock Text="  •  Live Data" FontSize="11" Foreground="#4F46E5" Margin="6,0,0,0" VerticalAlignment="Center" FontWeight="SemiBold"/>
-                    </StackPanel>
                 </StackPanel>
-                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                    <TextBlock Text="{Binding CurrentDate}" FontSize="13"
-                               Foreground="{StaticResource TextSecondaryBrush}"
-                               VerticalAlignment="Center" Margin="0,0,12,0"/>
-                    <Button Content="⟳ Refresh" Command="{Binding RefreshCommand}" Padding="14,6" Background="#4F46E5" Foreground="White" BorderThickness="0" Cursor="Hand">
-                        <Button.Resources>
-                            <Style TargetType="Border">
-                                <Setter Property="CornerRadius" Value="8"/>
-                            </Style>
-                        </Button.Resources>
-                    </Button>
-                </StackPanel>
+                <TextBlock Grid.Column="1" Text="{Binding CurrentDate}" FontSize="13"
+                           Foreground="{StaticResource TextSecondaryBrush}"
+                           VerticalAlignment="Center"/>
             </Grid>
 
             <!-- Loading / Error Banner -->

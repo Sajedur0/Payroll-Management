@@ -306,35 +306,19 @@ And in `MainWindow.xaml:7`:
 
 ## 👨‍💻 Developer
 
-<p align="center">
-  <img src="assets/about-icon.png" width="140" style="border-radius:50%" alt="Developer"/>
-</p>
+<div align="center">
 
-<p align="center">
-  <b>Md Sajedur Rahman Roni</b>
-</p>
+<img src="assets/developer.jpg" width="150" height="150" alt="Md Sajedur Rahman Roni" style="border-radius: 50%; border: 3px solid #1E1B4B; object-fit: cover;" />
 
-<p align="center">
-  <a href="https://github.com/Sajedur0">
-    <img src="https://img.shields.io/badge/GitHub-Sajedur0-181717?style=for-the-badge&logo=github&logoColor=white" alt="GitHub"/>
-  </a>
-  <a href="mailto:sajedurzero@gmail.com">
-    <img src="https://img.shields.io/badge/Email-Contact-D14836?style=for-the-badge&logo=gmail&logoColor=white" alt="Email"/>
-  </a>
-</p>
+### Md Sajedur Rahman Roni
+*WPF & .NET Developer — Creator of Payroll Management*
 
-> **Payroll Management** is crafted with ❤️ for HR teams who need a fast, offline, secure Windows solution.  
-> Logo & icons: `assets/about-icon.png` (180px, circular, blue-green gradient with payroll symbols).  
-> Developer photo: `assets/developer.jpg` (as requested) — replace with `assets/developer.jpg` if you prefer a personal photo:
->
-> ```md
-> <img src="assets/developer.jpg" width="140" style="border-radius:50%" />
-> ```
+[![GitHub](https://img.shields.io/badge/GitHub-@Sajedur0-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/Sajedur0)
+[![Email](https://img.shields.io/badge/Email-sajedurzero@gmail.com-D14836?style=for-the-badge&logo=gmail&logoColor=white)](mailto:sajedurzero@gmail.com)
 
-### Connect
+<sub>📍 Bangladesh &nbsp;•&nbsp; 💻 Passionate about Clean UI & Efficient Code &nbsp;•&nbsp; 🤝 Open to Collaboration</sub>
 
-- GitHub: [@Sajedur0](https://github.com/Sajedur0)
-- Project: `Payroll Management` — `RootNamespace: PayrollManagement`
+</div>
 
 ---
 

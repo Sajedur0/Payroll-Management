@@ -6,31 +6,132 @@
         <ResourceDictionary>
             <SolidColorBrush x:Key="PrimaryBrush" Color="#4F46E5"/>
             <SolidColorBrush x:Key="SidebarBrush" Color="#1E1B4B"/>
+            <SolidColorBrush x:Key="SidebarHoverBrush" Color="#312E81"/>
+            <SolidColorBrush x:Key="SidebarSelectedBrush" Color="#4338CA"/>
+            <SolidColorBrush x:Key="SidebarIndicatorBrush" Color="#818CF8"/>
             <SolidColorBrush x:Key="BackgroundBrush" Color="#F5F6FA"/>
             <SolidColorBrush x:Key="CardBrush" Color="#FFFFFF"/>
             <SolidColorBrush x:Key="TextPrimaryBrush" Color="#1F2937"/>
             <SolidColorBrush x:Key="TextSecondaryBrush" Color="#6B7280"/>
 
+            <!-- পুরাতন SidebarButton স্টাইল - এখন সিলেক্টেড অবস্থা সাপোর্ট করে (Tag=Selected) -->
             <Style TargetType="Button" x:Key="SidebarButton">
                 <Setter Property="Background" Value="Transparent"/>
-                <Setter Property="Foreground" Value="White"/>
+                <Setter Property="Foreground" Value="#D1D5DB"/>
                 <Setter Property="BorderThickness" Value="0"/>
-                <Setter Property="Padding" Value="18,14"/>
+                <Setter Property="Padding" Value="0"/>
                 <Setter Property="HorizontalAlignment" Value="Stretch"/>
                 <Setter Property="HorizontalContentAlignment" Value="Left"/>
-                <Setter Property="FontSize" Value="15"/>
+                <Setter Property="FontSize" Value="14.5"/>
+                <Setter Property="FontWeight" Value="Normal"/>
                 <Setter Property="Cursor" Value="Hand"/>
                 <Setter Property="Template">
                     <Setter.Value>
                         <ControlTemplate TargetType="Button">
                             <Border x:Name="border" Background="{TemplateBinding Background}"
-                                    CornerRadius="8" Margin="8,3">
-                                <ContentPresenter HorizontalAlignment="Left" VerticalAlignment="Center"
-                                                  Margin="14,10"/>
+                                    CornerRadius="8" Margin="8,4">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="4"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <!-- Left accent indicator for selected state -->
+                                    <Border x:Name="indicator" Grid.Column="0" Background="{StaticResource SidebarIndicatorBrush}"
+                                            Width="4" CornerRadius="2" Visibility="Collapsed"
+                                            VerticalAlignment="Stretch" Margin="0,6"/>
+                                    <ContentPresenter Grid.Column="1" HorizontalAlignment="Left" VerticalAlignment="Center"
+                                                      Margin="12,12,14,12"/>
+                                </Grid>
                             </Border>
                             <ControlTemplate.Triggers>
                                 <Trigger Property="IsMouseOver" Value="True">
-                                    <Setter TargetName="border" Property="Background" Value="#312E81"/>
+                                    <Setter TargetName="border" Property="Background" Value="{StaticResource SidebarHoverBrush}"/>
+                                    <Setter Property="Foreground" Value="White"/>
+                                </Trigger>
+                                <!-- Selected state via Tag=Selected (code-behind দ্বারা সেট করা হয়) -->
+                                <Trigger Property="Tag" Value="Selected">
+                                    <Setter TargetName="border" Property="Background" Value="{StaticResource SidebarSelectedBrush}"/>
+                                    <Setter TargetName="indicator" Property="Visibility" Value="Visible"/>
+                                    <Setter Property="Foreground" Value="White"/>
+                                    <Setter Property="FontWeight" Value="SemiBold"/>
+                                </Trigger>
+                                <MultiTrigger>
+                                    <MultiTrigger.Conditions>
+                                        <Condition Property="Tag" Value="Selected"/>
+                                        <Condition Property="IsMouseOver" Value="True"/>
+                                    </MultiTrigger.Conditions>
+                                    <Setter TargetName="border" Property="Background" Value="#4F46E5"/>
+                                </MultiTrigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
+            <!-- Global ComboBox: click anywhere opens dropdown immediately -->
+            <Style TargetType="ComboBox">
+                <EventSetter Event="PreviewMouseLeftButtonDown" Handler="ComboBox_PreviewMouseDown_OpenDropDown"/>
+                <Setter Property="Cursor" Value="Hand"/>
+            </Style>
+
+            <!-- Global DatePicker: click anywhere opens calendar -->
+            <Style TargetType="DatePicker">
+                <EventSetter Event="PreviewMouseLeftButtonDown" Handler="DatePicker_PreviewMouseDown_OpenPicker"/>
+                <EventSetter Event="PreviewMouseLeftButtonUp" Handler="DatePicker_PreviewMouseUp_OpenPicker"/>
+                <Setter Property="Cursor" Value="Hand"/>
+            </Style>
+
+            <!-- নতুন Sidebar RadioButton স্টাইল - IsChecked=true হলে সিলেক্টেড দেখাবে (XAML-only সমাধান) -->
+            <Style TargetType="RadioButton" x:Key="SidebarRadioButton">
+                <Setter Property="Background" Value="Transparent"/>
+                <Setter Property="Foreground" Value="#D1D5DB"/>
+                <Setter Property="BorderThickness" Value="0"/>
+                <Setter Property="Padding" Value="0"/>
+                <Setter Property="HorizontalAlignment" Value="Stretch"/>
+                <Setter Property="HorizontalContentAlignment" Value="Left"/>
+                <Setter Property="VerticalContentAlignment" Value="Center"/>
+                <Setter Property="FontSize" Value="14.5"/>
+                <Setter Property="FontWeight" Value="Normal"/>
+                <Setter Property="Cursor" Value="Hand"/>
+                <Setter Property="GroupName" Value="SidebarNav"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="RadioButton">
+                            <Border x:Name="border" Background="{TemplateBinding Background}"
+                                    CornerRadius="8" Margin="8,4">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="4"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <!-- Selected indicator -->
+                                    <Border x:Name="indicator" Grid.Column="0" Background="{StaticResource SidebarIndicatorBrush}"
+                                            Width="4" CornerRadius="2" Visibility="Collapsed"
+                                            VerticalAlignment="Stretch" Margin="0,6"/>
+                                    <ContentPresenter Grid.Column="1" HorizontalAlignment="Left" VerticalAlignment="Center"
+                                                      Margin="12,12,14,12" RecognizesAccessKey="True"/>
+                                </Grid>
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="border" Property="Background" Value="{StaticResource SidebarHoverBrush}"/>
+                                    <Setter Property="Foreground" Value="White"/>
+                                </Trigger>
+                                <Trigger Property="IsChecked" Value="True">
+                                    <Setter TargetName="border" Property="Background" Value="{StaticResource SidebarSelectedBrush}"/>
+                                    <Setter TargetName="indicator" Property="Visibility" Value="Visible"/>
+                                    <Setter Property="Foreground" Value="White"/>
+                                    <Setter Property="FontWeight" Value="SemiBold"/>
+                                </Trigger>
+                                <MultiTrigger>
+                                    <MultiTrigger.Conditions>
+                                        <Condition Property="IsChecked" Value="True"/>
+                                        <Condition Property="IsMouseOver" Value="True"/>
+                                    </MultiTrigger.Conditions>
+                                    <Setter TargetName="border" Property="Background" Value="#4F46E5"/>
+                                </MultiTrigger>
+                                <Trigger Property="IsEnabled" Value="False">
+                                    <Setter Property="Opacity" Value="0.5"/>
                                 </Trigger>
                             </ControlTemplate.Triggers>
                         </ControlTemplate>

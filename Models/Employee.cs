@@ -64,7 +64,7 @@ namespace PayrollManagement.Models
         public string EmployeeCode => EmpID?.ToString() ?? "";
         public string FullName => Name;
         public bool IsActive => string.Equals(Status, "Active", StringComparison.OrdinalIgnoreCase);
-        public string GrossWagesDisplay => GrossWages.HasValue ? GrossWages.Value.ToString("N2") : "-";
+        public string GrossWagesDisplay => GrossWages.HasValue ? GrossWages.Value.ToString("N0", System.Globalization.CultureInfo.InvariantCulture) : "-";
 
         public event PropertyChangedEventHandler? PropertyChanged;
         protected void OnPropertyChanged([CallerMemberName] string? name = null) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));

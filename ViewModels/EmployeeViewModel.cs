@@ -113,7 +113,7 @@ namespace PayrollManagement.ViewModels
         public bool IsEditMode => SL > 0;
 
         // Modal Dialog Display Properties
-        public string FormTitle => IsEditMode ? $"✏️ Edit Employee (SL: {SL}, EmpID: {EmpIDText})" : "➕ Add New Employee";
+        public string FormTitle => IsEditMode ? $"✏️ Edit Employee (EmpID: {EmpIDText})" : "➕ Add New Employee";
         public string FormModeSubtitle => IsEditMode ? "Edit / Update Mode" : "New Entry Mode";
         public string SubmitButtonText => IsEditMode ? "💾 Update Employee" : "💾 Save Employee";
 
@@ -188,7 +188,7 @@ namespace PayrollManagement.ViewModels
             {
                 var list = await _repo.GetEmployeesAsync(string.IsNullOrWhiteSpace(SearchText) ? null : SearchText);
                 Employees = new ObservableCollection<Employee>(list);
-                SuccessMessage = $"{list.Count} employees loaded";
+                SuccessMessage = null;
             }
             catch (Exception ex)
             {
@@ -319,18 +319,51 @@ namespace PayrollManagement.ViewModels
                 return false;
             }
 
-            if (!string.IsNullOrWhiteSpace(GrossWagesText))
+            if (string.IsNullOrWhiteSpace(Designation))
             {
-                if (double.TryParse(GrossWagesText.Trim(), NumberStyles.Any, CultureInfo.InvariantCulture, out var gw) ||
-                    double.TryParse(GrossWagesText.Trim(), out gw))
-                {
-                    grossWages = gw;
-                }
-                else
-                {
-                    error = "GrossWages must be a valid number (e.g., 27000.0).";
-                    return false;
-                }
+                error = "Designation is required.";
+                return false;
+            }
+
+            if (string.IsNullOrWhiteSpace(Section))
+            {
+                error = "Section is required.";
+                return false;
+            }
+
+            if (string.IsNullOrWhiteSpace(FatherName))
+            {
+                error = "Father Name is required.";
+                return false;
+            }
+
+            if (string.IsNullOrWhiteSpace(NID))
+            {
+                error = "NID is required.";
+                return false;
+            }
+
+            if (string.IsNullOrWhiteSpace(PermAddress))
+            {
+                error = "Permanent Address is required.";
+                return false;
+            }
+
+            if (string.IsNullOrWhiteSpace(GrossWagesText))
+            {
+                error = "Gross Wages is required.";
+                return false;
+            }
+
+            if (double.TryParse(GrossWagesText.Trim(), NumberStyles.Any, CultureInfo.InvariantCulture, out var gw) ||
+                double.TryParse(GrossWagesText.Trim(), out gw))
+            {
+                grossWages = gw;
+            }
+            else
+            {
+                error = "Gross Wages must be a valid number (e.g., 27000).";
+                return false;
             }
 
             if (DOJDate.HasValue)

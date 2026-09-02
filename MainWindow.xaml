@@ -18,16 +18,17 @@
                 <TextBlock Text="💼 Payroll Management" Foreground="White" FontSize="20"
                            FontWeight="Bold" Margin="20,0,0,35"/>
 
-                <Button Content="🏠  Dashboard" Style="{StaticResource SidebarButton}"
-                        Click="NavigateDashboard_Click"/>
-                <Button Content="👥  Employee" Style="{StaticResource SidebarButton}"
-                        Click="NavigateEmployee_Click"/>
-                <Button Content="📋  Attendance Log" Style="{StaticResource SidebarButton}"
-                        Click="NavigateAttendance_Click"/>
-                <Button Content="📊  Report" Style="{StaticResource SidebarButton}"
-                        Click="NavigateReport_Click"/>
-                <Button Content="⚙️  Admin Tools" Style="{StaticResource SidebarButton}"
-                        Click="NavigateAdmin_Click"/>
+                <!-- IsChecked=True হলে সিলেক্টেড স্টাইল (Background #4338CA + বামে indicator + SemiBold) দেখাবে -->
+                <RadioButton x:Name="NavDashboard" Content="🏠  Dashboard" Style="{StaticResource SidebarRadioButton}"
+                        GroupName="SidebarNav" IsChecked="True" Click="NavigateDashboard_Click"/>
+                <RadioButton x:Name="NavEmployee" Content="👥  Employee" Style="{StaticResource SidebarRadioButton}"
+                        GroupName="SidebarNav" Click="NavigateEmployee_Click"/>
+                <RadioButton x:Name="NavAttendance" Content="📋  Attendance Log" Style="{StaticResource SidebarRadioButton}"
+                        GroupName="SidebarNav" Click="NavigateAttendance_Click"/>
+                <RadioButton x:Name="NavReport" Content="📊  Report" Style="{StaticResource SidebarRadioButton}"
+                        GroupName="SidebarNav" Click="NavigateReport_Click"/>
+                <RadioButton x:Name="NavAdmin" Content="⚙️  Admin Tools" Style="{StaticResource SidebarRadioButton}"
+                        GroupName="SidebarNav" Click="NavigateAdmin_Click"/>
             </StackPanel>
         </Border>
 
