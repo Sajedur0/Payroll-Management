@@ -14,7 +14,7 @@
             <SolidColorBrush x:Key="TextPrimaryBrush" Color="#1F2937"/>
             <SolidColorBrush x:Key="TextSecondaryBrush" Color="#6B7280"/>
 
-            <!-- পুরাতন SidebarButton স্টাইল - এখন সিলেক্টেড অবস্থা সাপোর্ট করে (Tag=Selected) -->
+            <!-- Legacy SidebarButton style - now supports selected state (Tag=Selected) -->
             <Style TargetType="Button" x:Key="SidebarButton">
                 <Setter Property="Background" Value="Transparent"/>
                 <Setter Property="Foreground" Value="#D1D5DB"/>
@@ -48,7 +48,7 @@
                                     <Setter TargetName="border" Property="Background" Value="{StaticResource SidebarHoverBrush}"/>
                                     <Setter Property="Foreground" Value="White"/>
                                 </Trigger>
-                                <!-- Selected state via Tag=Selected (code-behind দ্বারা সেট করা হয়) -->
+                                <!-- Selected state via Tag=Selected (set via code-behind) -->
                                 <Trigger Property="Tag" Value="Selected">
                                     <Setter TargetName="border" Property="Background" Value="{StaticResource SidebarSelectedBrush}"/>
                                     <Setter TargetName="indicator" Property="Visibility" Value="Visible"/>
@@ -81,7 +81,7 @@
                 <Setter Property="Cursor" Value="Hand"/>
             </Style>
 
-            <!-- নতুন Sidebar RadioButton স্টাইল - IsChecked=true হলে সিলেক্টেড দেখাবে (XAML-only সমাধান) -->
+            <!-- New Sidebar RadioButton style - shows selected when IsChecked=true (XAML-only solution) -->
             <Style TargetType="RadioButton" x:Key="SidebarRadioButton">
                 <Setter Property="Background" Value="Transparent"/>
                 <Setter Property="Foreground" Value="#D1D5DB"/>

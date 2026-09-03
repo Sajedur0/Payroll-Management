@@ -198,13 +198,11 @@
                             <!-- DOJ -->
                             <StackPanel Grid.Column="2">
                                 <TextBlock Text="DOJ (Joining Date)" FontSize="11" Foreground="{StaticResource TextPrimaryBrush}" FontWeight="SemiBold" Margin="0,0,0,4"/>
-                                <DatePicker SelectedDate="{Binding DOJDate}" Padding="4,4" BorderBrush="#E5E7EB" Cursor="Hand">
+                                <DatePicker SelectedDate="{Binding DOJDate, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Padding="4,4" BorderBrush="#E5E7EB" Cursor="Hand">
                                     <DatePicker.Resources>
                                         <Style TargetType="DatePickerTextBox">
                                             <Setter Property="IsReadOnly" Value="True"/>
-                                            <Setter Property="Focusable" Value="False"/>
                                             <Setter Property="Cursor" Value="Hand"/>
-                                            <Setter Property="IsHitTestVisible" Value="False"/>
                                         </Style>
                                     </DatePicker.Resources>
                                 </DatePicker>

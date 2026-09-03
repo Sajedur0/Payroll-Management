@@ -1,89 +1,273 @@
 ﻿<UserControl x:Class="PayrollManagement.Views.AdminToolsView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-    <ScrollViewer Padding="25" Background="{StaticResource BackgroundBrush}">
+    <ScrollViewer Padding="16" Background="{StaticResource BackgroundBrush}" VerticalScrollBarVisibility="Auto">
         <StackPanel>
-            <Border Background="White" CornerRadius="12" Padding="20" Margin="0,0,0,15">
+            <Border Background="White" CornerRadius="12" Padding="16" Margin="0,0,0,12">
                 <Border.Effect>
-                    <DropShadowEffect BlurRadius="15" ShadowDepth="2" Opacity="0.08" Color="Black"/>
+                    <DropShadowEffect BlurRadius="12" ShadowDepth="1" Opacity="0.06" Color="Black"/>
                 </Border.Effect>
-                <StackPanel>
-                    <TextBlock Text="Admin Tools" FontSize="22" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
-                    <TextBlock Text="System Management" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,4,0,0"/>
-                    <TextBlock TextWrapping="Wrap" Margin="0,12,0,0" Foreground="#374151" FontSize="13">
-                        All system data is loaded securely in real-time.
-                    </TextBlock>
-                </StackPanel>
-            </Border>
-
-            <!-- DB Connection Info -->
-            <Border Background="White" CornerRadius="12" Padding="20" Margin="0,0,0,15">
-                <StackPanel>
-                    <TextBlock Text="Database Connection" FontWeight="Bold" FontSize="14" Foreground="{StaticResource TextPrimaryBrush}"/>
-                    <TextBlock Text="App.config &gt; connectionStrings" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,2,0,10"/>
-                    <Border Background="#F3F4F6" CornerRadius="8" Padding="12">
-                        <TextBlock x:Name="ConnectionStringText" FontFamily="Consolas" FontSize="11" Foreground="#1F2937" TextWrapping="Wrap"
-                                   Text="Server=.\SQLEXPRESS;Trusted_Connection=True;TrustServerCertificate=True;"/>
-                    </Border>
-                    <TextBlock Text="• To change Server, edit App.config and restart the App.&#x0a;• Fallback: .\SQLEXPRESS → (localdb)\MSSQLLocalDB → . → localhost will be tried automatically." 
-                               FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,10,0,0" TextWrapping="Wrap"/>
-                    <StackPanel Orientation="Horizontal" Margin="0,14,0,0">
-                        <Button Content="Test Connection" Click="TestConnection_Click" Padding="16,7" Background="#4F46E5" Foreground="White" BorderThickness="0" Cursor="Hand" Margin="0,0,10,0">
-                            <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style></Button.Resources>
-                        </Button>
-                        <Button Content="Open SQL Script Folder" Click="OpenScript_Click" Padding="16,7" Background="White" Foreground="#4F46E5" BorderBrush="#4F46E5" BorderThickness="1" Cursor="Hand">
-                            <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style></Button.Resources>
-                        </Button>
+                <DockPanel>
+                    <StackPanel>
+                        <TextBlock Text="Admin Tools" FontSize="20" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                        <TextBlock Text="{Binding StatusMessage}" FontSize="11" Foreground="#4F46E5" Margin="0,4,0,0"/>
                     </StackPanel>
-                    <TextBlock x:Name="TestResultText" FontSize="12" Margin="0,10,0,0" TextWrapping="Wrap"/>
-                </StackPanel>
+                    <Button Content="Refresh All" Command="{Binding RefreshAllCommand}" DockPanel.Dock="Right" VerticalAlignment="Center" Padding="12,6" Background="#4F46E5" Foreground="White" BorderThickness="0" Cursor="Hand"/>
+                </DockPanel>
             </Border>
 
-            <!-- Setup Instructions -->
-            <Border Background="White" CornerRadius="12" Padding="20" Margin="0,0,0,15">
-                <StackPanel>
-                    <TextBlock Text="Setup Instructions (First Time)" FontWeight="Bold" FontSize="14" Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,10"/>
-                    <TextBlock FontSize="12.5" Foreground="#374151" TextWrapping="Wrap" LineHeight="20">
-                        1. Open SQL Server Management Studio (SSMS) and connect to the SQL Server instance (.\SQLEXPRESS).<LineBreak/>
-                        2. Open <Bold>Database\setup.sql</Bold> via <Bold>File → Open → File</Bold> and click <Bold>Execute (F5)</Bold>.<LineBreak/>
-                        3. If successful, the system database will be created with sample data.<LineBreak/>
-                        4. Run the App — Dashboard, Attendance Log and Reports will show live data automatically.<LineBreak/>
-                        5. If using LocalDB, set Server=(localdb)\MSSQLLocalDB in App.config.<LineBreak/>
-                    </TextBlock>
-                    <Border Background="#EEF2FF" CornerRadius="8" Padding="12" Margin="0,12,0,0">
-                        <TextBlock FontSize="11" Foreground="#4338CA" TextWrapping="Wrap">
-                            SQL Script Location: <Bold>Database\setup.sql</Bold> (in project root)
-                        </TextBlock>
+            <TabControl Background="White" BorderThickness="0" Padding="4">
+                <!-- Company Details -->
+                <TabItem Header="Company Details">
+                    <Border Padding="16">
+                        <StackPanel>
+                            <TextBlock Text="Company Name" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,4"/>
+                            <TextBox Text="{Binding CompanyName}" Padding="6,4" Margin="0,0,0,10"/>
+                            <TextBlock Text="Address" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,4"/>
+                            <TextBox Text="{Binding CompanyAddress}" Padding="6,4" Height="60" TextWrapping="Wrap" AcceptsReturn="True" Margin="0,0,0,10"/>
+                            <TextBlock Text="Number" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,4"/>
+                            <TextBox Text="{Binding CompanyNumber}" Padding="6,4" Margin="0,0,0,12"/>
+                            <Button Content="Save Company Details" Command="{Binding SaveCompanyCommand}" Padding="14,7" Background="#4F46E5" Foreground="White" BorderThickness="0" Cursor="Hand" HorizontalAlignment="Left"/>
+                        </StackPanel>
                     </Border>
-                </StackPanel>
-            </Border>
+                </TabItem>
 
-            <!-- Tables Info -->
-            <Border Background="White" CornerRadius="12" Padding="20">
-                <StackPanel>
-                    <TextBlock Text="Tables Overview" FontWeight="Bold" FontSize="14" Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,10"/>
-                    <Grid>
-                        <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition/></Grid.ColumnDefinitions>
-                        <StackPanel Grid.Column="0" Margin="0,0,10,0">
-                            <Border Background="#F9FAFB" CornerRadius="6" Padding="10" Margin="0,0,0,6">
-                                <StackPanel><TextBlock Text="Employee Information" FontWeight="SemiBold" FontSize="12"/><TextBlock Text="SL, Name, EmpID, Gender, Designation, Section, Department, Shift, Category, Status, RocketAC, GrossWages, Religion, DOJ, FatherName, NID, PermAddress, PresAddress" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap"/></StackPanel>
-                            </Border>
-                            <Border Background="#F9FAFB" CornerRadius="6" Padding="10" Margin="0,0,0,6">
-                                <StackPanel><TextBlock Text="Attendance Records" FontWeight="SemiBold" FontSize="12"/><TextBlock Text="AttendanceId, EmployeeId, AttendanceDate, CheckIn, CheckOut, Status, WorkHours" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap"/></StackPanel>
-                            </Border>
+                <!-- Week End -->
+                <TabItem Header="Week End">
+                    <Border Padding="16">
+                        <StackPanel>
+                            <TextBlock Text="Select weekend day to add" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,4"/>
+                            <Grid>
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                <ComboBox Grid.Column="0" Text="{Binding SelectedWeekDay, UpdateSourceTrigger=PropertyChanged}" IsEditable="True" Margin="0,0,8,0" Padding="4">
+                                    <ComboBoxItem Content="Saturday"/><ComboBoxItem Content="Sunday"/><ComboBoxItem Content="Monday"/><ComboBoxItem Content="Tuesday"/><ComboBoxItem Content="Wednesday"/><ComboBoxItem Content="Thursday"/><ComboBoxItem Content="Friday"/>
+                                </ComboBox>
+                                <Button Grid.Column="1" Content="Add" Command="{Binding AddWeekEndCommand}" Padding="14,6" Background="#4F46E5" Foreground="White" BorderThickness="0" Cursor="Hand"/>
+                            </Grid>
+                            <TextBlock Text="Current WeekEnds" FontWeight="SemiBold" FontSize="12" Margin="0,16,0,8"/>
+                            <ListBox ItemsSource="{Binding WeekEndList}" Height="150" BorderBrush="#E5E7EB" BorderThickness="1">
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <DockPanel Margin="4">
+                                            <TextBlock Text="{Binding}" VerticalAlignment="Center"/>
+                                            <Button Content="Delete" DockPanel.Dock="Right" Padding="8,2" Background="#DC2626" Foreground="White" BorderThickness="0" Cursor="Hand" FontSize="11"
+                                                    Command="{Binding DataContext.DeleteWeekEndCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}"/>
+                                        </DockPanel>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
                         </StackPanel>
-                        <StackPanel Grid.Column="1">
-                            <Border Background="#F9FAFB" CornerRadius="6" Padding="10" Margin="0,0,0,6">
-                                <StackPanel><TextBlock Text="Leave Records" FontWeight="SemiBold" FontSize="12"/><TextBlock Text="LeaveId, EmployeeId, LeaveType, StartDate, EndDate, Status" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap"/></StackPanel>
-                            </Border>
-                            <Border Background="#F9FAFB" CornerRadius="6" Padding="10" Margin="0,0,0,6">
-                                <StackPanel><TextBlock Text="Activity Log" FontWeight="SemiBold" FontSize="12"/><TextBlock Text="LogId, Description, LogTime, EmployeeId" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap"/></StackPanel>
-                            </Border>
+                    </Border>
+                </TabItem>
+
+                <!-- Company Holiday -->
+                <TabItem Header="Company Holiday">
+                    <Border Padding="16">
+                        <StackPanel>
+                            <Grid>
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+                                <StackPanel Grid.Row="0" Grid.Column="0" Margin="0,0,8,8">
+                                    <TextBlock Text="Festival Name *" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,4"/>
+                                    <TextBox Text="{Binding FestivalName}" Padding="6,4"/>
+                                </StackPanel>
+                                <StackPanel Grid.Row="0" Grid.Column="1" Margin="0,0,0,8">
+                                    <TextBlock Text="Notes" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,4"/>
+                                    <TextBox Text="{Binding HolidayNotes}" Padding="6,4"/>
+                                </StackPanel>
+                                <StackPanel Grid.Row="1" Grid.Column="0" Margin="0,0,8,8">
+                                    <TextBlock Text="From Date" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,4"/>
+                                    <DatePicker SelectedDate="{Binding HolidayFrom}"/>
+                                </StackPanel>
+                                <StackPanel Grid.Row="1" Grid.Column="1" Margin="0,0,0,8">
+                                    <TextBlock Text="To Date" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,4"/>
+                                    <DatePicker SelectedDate="{Binding HolidayTo}"/>
+                                </StackPanel>
+                            </Grid>
+                            <StackPanel Orientation="Horizontal" Margin="0,4,0,12">
+                                <Button Content="Save Holiday" Command="{Binding SaveHolidayCommand}" Padding="14,6" Background="#4F46E5" Foreground="White" BorderThickness="0" Cursor="Hand" Margin="0,0,8,0"/>
+                                <Button Content="Cancel Edit" Command="{Binding CancelHolidayEditCommand}" Padding="14,6" Background="White" Foreground="#4F46E5" BorderBrush="#4F46E5" BorderThickness="1" Cursor="Hand"/>
+                                <TextBlock Text="Editing..." Foreground="#D97706" FontSize="11" VerticalAlignment="Center" Margin="12,0,0,0">
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsEditingHoliday}" Value="True"><Setter Property="Visibility" Value="Visible"/></DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
+                            </StackPanel>
+                            <DataGrid ItemsSource="{Binding Holidays}" SelectedItem="{Binding SelectedHoliday}" AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False" Height="200"
+                                      GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="#F0F0F0" BorderThickness="0" RowHeight="28" AlternatingRowBackground="#F9FAFB" FontSize="11">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="Festival" Binding="{Binding FestivalName}" Width="*"/>
+                                    <DataGridTextColumn Header="From" Binding="{Binding FromDate}" Width="90"/>
+                                    <DataGridTextColumn Header="To" Binding="{Binding ToDate}" Width="90"/>
+                                    <DataGridTextColumn Header="Notes" Binding="{Binding Notes}" Width="150"/>
+                                    <DataGridTemplateColumn Header="Action" Width="70">
+                                        <DataGridTemplateColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <Button Content="Delete" Padding="6,2" Background="#DC2626" Foreground="White" BorderThickness="0" Cursor="Hand" FontSize="11"
+                                                        Command="{Binding DataContext.DeleteHolidayCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}"/>
+                                            </DataTemplate>
+                                        </DataGridTemplateColumn.CellTemplate>
+                                    </DataGridTemplateColumn>
+                                </DataGrid.Columns>
+                            </DataGrid>
                         </StackPanel>
-                    </Grid>
-                </StackPanel>
-            </Border>
+                    </Border>
+                </TabItem>
+
+                <!-- Resign Info -->
+                <TabItem Header="Resign Info">
+                    <Border Padding="16">
+                        <StackPanel>
+                            <Grid>
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0" Margin="0,0,8,8">
+                                    <TextBlock Text="EmpID" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,4"/>
+                                    <TextBox Text="{Binding ExitEmpId, UpdateSourceTrigger=PropertyChanged}" Padding="6,4"/>
+                                    <TextBlock Text="{Binding ExitEmpName}" FontSize="11" Foreground="#059669" Margin="0,4,0,0"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="1" Margin="0,0,0,8">
+                                    <TextBlock Text="Exit Type" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,4"/>
+                                    <ComboBox Text="{Binding ExitType}" IsEditable="True" Padding="4">
+                                        <ComboBoxItem Content="Resign"/><ComboBoxItem Content="Terminate"/><ComboBoxItem Content="Retire"/><ComboBoxItem Content="Other"/>
+                                    </ComboBox>
+                                </StackPanel>
+                            </Grid>
+                            <Grid>
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0" Margin="0,0,8,8">
+                                    <TextBlock Text="Exit Date" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,4"/>
+                                    <DatePicker SelectedDate="{Binding ExitDate}"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="1" Margin="0,0,0,8">
+                                    <TextBlock Text="Reason Type" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,4"/>
+                                    <ComboBox SelectedItem="{Binding ExitReasonType}" Padding="4" IsEditable="True">
+                                        <ComboBoxItem Content="Better career opportunity"/><ComboBoxItem Content="Personal reason"/><ComboBoxItem Content="Family reason"/><ComboBoxItem Content="Relocation"/><ComboBoxItem Content="Health issue"/><ComboBoxItem Content="Mutual agreement"/>
+                                    </ComboBox>
+                                </StackPanel>
+                            </Grid>
+                            <TextBlock Text="Reason" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,4"/>
+                            <TextBox Text="{Binding ExitReason}" Padding="6,4" Height="50" TextWrapping="Wrap" AcceptsReturn="True" Margin="0,0,0,10"/>
+                            <Button Content="Save Exit Info (MERGE upsert)" Command="{Binding SaveExitCommand}" Padding="14,6" Background="#4F46E5" Foreground="White" BorderThickness="0" Cursor="Hand" HorizontalAlignment="Left" Margin="0,0,0,12"/>
+                            <DataGrid ItemsSource="{Binding ExitRows}" AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False" Height="200"
+                                      GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="#F0F0F0" BorderThickness="0" RowHeight="28" AlternatingRowBackground="#F9FAFB" FontSize="11">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="EmpID" Binding="{Binding EmpId}" Width="70"/>
+                                    <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="*"/>
+                                    <DataGridTextColumn Header="Type" Binding="{Binding ExitType}" Width="80"/>
+                                    <DataGridTextColumn Header="Date" Binding="{Binding ExitDate}" Width="90"/>
+                                    <DataGridTextColumn Header="Reason" Binding="{Binding Reason}" Width="180"/>
+                                    <DataGridTemplateColumn Header="Action" Width="70">
+                                        <DataGridTemplateColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <Button Content="Delete" Padding="6,2" Background="#DC2626" Foreground="White" BorderThickness="0" Cursor="Hand" FontSize="11"
+                                                        Command="{Binding DataContext.DeleteExitCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}"/>
+                                            </DataTemplate>
+                                        </DataGridTemplateColumn.CellTemplate>
+                                    </DataGridTemplateColumn>
+                                </DataGrid.Columns>
+                            </DataGrid>
+                        </StackPanel>
+                    </Border>
+                </TabItem>
+
+                <!-- Shift Change -->
+                <TabItem Header="Shift Change">
+                    <Border Padding="16">
+                        <StackPanel>
+                            <TextBlock Text="Static shift time (MERGE upsert on ShiftName). Out &lt;= In = Night duty." FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,8"/>
+                            <Grid>
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0" Margin="0,0,8,8">
+                                    <TextBlock Text="Shift Name" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,4"/>
+                                    <ComboBox Text="{Binding ShiftName}" IsEditable="True" ItemsSource="{Binding UnscheduledShifts}" Padding="4"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="1" Margin="0,0,8,8">
+                                    <TextBlock Text="In Time (HH:mm:ss)" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,4"/>
+                                    <TextBox Text="{Binding ShiftInTime}" Padding="6,4"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="2" Margin="0,0,0,8">
+                                    <TextBlock Text="Out Time (HH:mm:ss)" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,4"/>
+                                    <TextBox Text="{Binding ShiftOutTime}" Padding="6,4"/>
+                                </StackPanel>
+                            </Grid>
+                            <TextBlock Text="Notes" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,4"/>
+                            <TextBox Text="{Binding ShiftNotes}" Padding="6,4" Margin="0,0,0,10"/>
+                            <Button Content="Save Shift" Command="{Binding SaveShiftCommand}" Padding="14,6" Background="#4F46E5" Foreground="White" BorderThickness="0" Cursor="Hand" HorizontalAlignment="Left" Margin="0,0,0,12"/>
+                            <DataGrid ItemsSource="{Binding ShiftSchedules}" SelectedItem="{Binding SelectedShiftSchedule}" AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False" Height="200"
+                                      GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="#F0F0F0" BorderThickness="0" RowHeight="28" AlternatingRowBackground="#F9FAFB" FontSize="11">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="Shift" Binding="{Binding ShiftName}" Width="*"/>
+                                    <DataGridTextColumn Header="Duty" Binding="{Binding DutyType}" Width="70"/>
+                                    <DataGridTextColumn Header="In" Binding="{Binding InTime}" Width="90"/>
+                                    <DataGridTextColumn Header="Out" Binding="{Binding OutTime}" Width="90"/>
+                                    <DataGridTextColumn Header="Notes" Binding="{Binding Notes}" Width="120"/>
+                                    <DataGridTemplateColumn Header="Action" Width="70">
+                                        <DataGridTemplateColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <Button Content="Delete" Padding="6,2" Background="#DC2626" Foreground="White" BorderThickness="0" Cursor="Hand" FontSize="11"
+                                                        Command="{Binding DataContext.DeleteShiftCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}"/>
+                                            </DataTemplate>
+                                        </DataGridTemplateColumn.CellTemplate>
+                                    </DataGridTemplateColumn>
+                                </DataGrid.Columns>
+                            </DataGrid>
+                        </StackPanel>
+                    </Border>
+                </TabItem>
+
+                <!-- Shift Cycle -->
+                <TabItem Header="Shift Cycle">
+                    <Border Padding="16">
+                        <StackPanel>
+                            <Grid>
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0" Margin="0,0,8,0">
+                                    <TextBlock Text="Cycle Start Date (Saturday-aligned, 520 weeks)" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,4"/>
+                                    <DatePicker SelectedDate="{Binding CycleStartDate}"/>
+                                </StackPanel>
+                                <Button Grid.Column="1" Content="Generate Cycle" Command="{Binding GenerateCycleCommand}" Padding="14,6" Background="#4F46E5" Foreground="White" BorderThickness="0" Cursor="Hand" VerticalAlignment="Bottom" Margin="0,0,8,0"/>
+                                <Button Grid.Column="2" Content="Delete All" Command="{Binding DeleteAllCycleCommand}" Padding="14,6" Background="#DC2626" Foreground="White" BorderThickness="0" Cursor="Hand" VerticalAlignment="Bottom"/>
+                            </Grid>
+                            <TextBlock Text="Select shifts to include in weekly Day↔Night rotation. A/B handled automatically." FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,10,0,8"/>
+                            <Border BorderBrush="#E5E7EB" BorderThickness="1" CornerRadius="6" Padding="8" MaxHeight="180">
+                                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                    <ItemsControl ItemsSource="{Binding ShiftCycleItems}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Grid Margin="0,4">
+                                                    <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                                    <CheckBox Grid.Column="0" IsChecked="{Binding IsSelected}" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                                    <TextBlock Grid.Column="1" Text="{Binding ShiftName}" VerticalAlignment="Center" FontSize="12"/>
+                                                    <ComboBox Grid.Column="2" SelectedItem="{Binding DutyType}" Width="100" Padding="2" FontSize="11">
+                                                        <ComboBoxItem Content="Day"/><ComboBoxItem Content="Night"/>
+                                                    </ComboBox>
+                                                </Grid>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </ScrollViewer>
+                            </Border>
+                            <TextBlock Text="Recent Rotation (top 200)" FontWeight="SemiBold" FontSize="12" Margin="0,12,0,6"/>
+                            <DataGrid ItemsSource="{Binding RotationRows}" AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False" Height="200"
+                                      GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="#F0F0F0" BorderThickness="0" RowHeight="26" AlternatingRowBackground="#F9FAFB" FontSize="11">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="Date" Binding="{Binding ScheduleDate}" Width="90"/>
+                                    <DataGridTextColumn Header="Shift" Binding="{Binding ShiftName}" Width="*"/>
+                                    <DataGridTextColumn Header="Duty" Binding="{Binding DutyType}" Width="70"/>
+                                    <DataGridTextColumn Header="In" Binding="{Binding InDateTime}" Width="140"/>
+                                    <DataGridTextColumn Header="Out" Binding="{Binding OutDateTime}" Width="140"/>
+                                    <DataGridCheckBoxColumn Header="OT" Binding="{Binding IsOvertime}" Width="50"/>
+                                </DataGrid.Columns>
+                            </DataGrid>
+                        </StackPanel>
+                    </Border>
+                </TabItem>
+            </TabControl>
         </StackPanel>
     </ScrollViewer>
 </UserControl>
-
