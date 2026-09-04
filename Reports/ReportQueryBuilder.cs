@@ -11,6 +11,7 @@ namespace PayrollManagement.Reports
         public static List<string> FilteredValues(string fieldName, ReportFilters filters)
         {
             if (!AllowedFilterFields.Contains(fieldName)) return new();
+            if (filters == null) return new();
 
             var where = new List<string> { $"{fieldName} IS NOT NULL", $"TRIM({fieldName}) != ''" };
             var parameters = new List<(string, object)>();
@@ -23,12 +24,10 @@ namespace PayrollManagement.Reports
             foreach (var (col, val) in map)
             {
                 if (col == fieldName) continue;
-                if (val != "All")
-                {
-                    where.Add($"{col} = @p{i}");
-                    parameters.Add(($"@p{i}", val));
-                    i++;
-                }
+                if (string.IsNullOrWhiteSpace(val) || val == "All") continue;
+                where.Add($"{col} = @p{i}");
+                parameters.Add(($"@p{i}", val.Trim()));
+                i++;
             }
 
             var sql = $@"SELECT DISTINCT {fieldName} FROM EmployeeInfo
@@ -36,7 +35,10 @@ namespace PayrollManagement.Reports
             try
             {
                 return DbHelper.FetchRows(sql, parameters.ToArray())
-                    .Select(r => r[0]?.ToString() ?? "").ToList();
+                    .Select(r => r[0]?.ToString()?.Trim() ?? "")
+                    .Where(s => !string.IsNullOrWhiteSpace(s))
+                    .Distinct()
+                    .ToList();
             }
             catch { return new List<string>(); }
         }
@@ -61,12 +63,10 @@ namespace PayrollManagement.Reports
             };
             foreach (var (col, val) in fields)
             {
-                if (val != "All")
-                {
-                    where.Add($"{alias}.{col} = @p{i}");
-                    parameters.Add(($"@p{i}", val));
-                    i++;
-                }
+                if (string.IsNullOrWhiteSpace(val) || val == "All") continue;
+                where.Add($"{alias}.{col} = @p{i}");
+                parameters.Add(($"@p{i}", val.Trim()));
+                i++;
             }
             return (where, parameters);
         }

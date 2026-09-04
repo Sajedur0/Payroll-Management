@@ -19,9 +19,7 @@ bld/
 [Ll]ogs/
 
 ## Publish
-publish/
-publish-single/
-publish-selfcontained/
+[Pp]ublish*/
 PublishProfiles/
 
 ## MSTest
@@ -82,7 +80,6 @@ App_Data/
 appsettings.local.json
 appsettings.Development.json
 secrets.json
-*.pfx
 *.key
 *.crt
 ConnectionStrings.config
@@ -102,13 +99,15 @@ $RECYCLE.BIN/
 *.tlog
 
 ## Temporary
-*~ 
+*~
 *.tmp
 *.temp
 *.swp
 *.*~
 ~$*
 
-## Keep SQL script
-!Database/AttendanceDB.sql
-!Database/*.sql
+## SQL scripts are source - keep tracked (e.g. Database/setup.sql)
+
+## Docs / local prompts - ignore markdown except README
+*.md
+!README.md

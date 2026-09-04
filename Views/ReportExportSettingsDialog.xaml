@@ -1,0 +1,57 @@
+<Window x:Class="PayrollManagement.Views.ReportExportSettingsDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="{Binding DialogTitle}"
+        Width="420" SizeToContent="Height"
+        WindowStartupLocation="CenterOwner" ResizeMode="NoResize"
+        ShowInTaskbar="False">
+    <!-- Mirrors Python: _report_output_options() in payroll_app/reports/reports_page.py:1457-1509
+         QDialog + QFormLayout with Paper Size / Orientation / 2 CheckBoxes / Export|Print + Cancel -->
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto" MinWidth="150"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <TextBlock Text="Paper Size:" FontWeight="SemiBold"
+                   Grid.Row="0" Grid.Column="0"
+                   VerticalAlignment="Center" Margin="0,0,10,12"/>
+        <ComboBox ItemsSource="{Binding PaperSizes}"
+                  SelectedItem="{Binding PaperSize, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                  Grid.Row="0" Grid.Column="1" Margin="0,0,0,12"/>
+
+        <TextBlock Text="Orientation:" FontWeight="SemiBold"
+                   Grid.Row="1" Grid.Column="0"
+                   VerticalAlignment="Center" Margin="0,0,10,12"/>
+        <ComboBox ItemsSource="{Binding Orientations}"
+                  SelectedItem="{Binding Orientation, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                  Grid.Row="1" Grid.Column="1" Margin="0,0,0,12"/>
+
+        <CheckBox Content="Company details on every page"
+                  IsChecked="{Binding RepeatCompanyHeader, Mode=TwoWay}"
+                  Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2"
+                  Margin="0,0,0,8"/>
+        <CheckBox Content="Separate report per employee"
+                  IsChecked="{Binding SeparateReport, Mode=TwoWay}"
+                  ToolTip="Individual per-employee report vs. combined report for all employees"
+                  Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2"
+                  Margin="0,0,0,16"/>
+
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right"
+                    Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="2">
+            <Button Content="{Binding ActionLabel}" Width="90" Height="34"
+                    FontWeight="Bold" Margin="0,0,10,0"
+                    IsDefault="True"
+                    Click="Accept_Click"/>
+            <Button Content="Cancel" Width="90" Height="34"
+                    IsCancel="True" Click="Cancel_Click"/>
+        </StackPanel>
+    </Grid>
+</Window>

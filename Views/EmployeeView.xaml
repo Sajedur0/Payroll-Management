@@ -93,6 +93,21 @@
                         <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="7"/></Style></Button.Resources>
                     </Button>
 
+                    <!-- Export List PDF Button -->
+                    <Button Content="📄 Export List PDF" Command="{Binding ExportListPdfCommand}" 
+                            Padding="18,8" Background="#0F5F9F" Foreground="White" BorderThickness="0" 
+                            Cursor="Hand" Margin="0,0,10,6" FontWeight="SemiBold">
+                        <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="7"/></Style></Button.Resources>
+                    </Button>
+
+                    <!-- Export Selected Profile PDF Button -->
+                    <Button Content="📇 Export Profile PDF" Command="{Binding ExportProfilePdfCommand}" 
+                            Padding="18,8" Background="#7C3AED" Foreground="White" BorderThickness="0" 
+                            Cursor="Hand" Margin="0,0,10,6" FontWeight="SemiBold"
+                            IsEnabled="{Binding HasSelectedEmployee}">
+                        <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="7"/></Style></Button.Resources>
+                    </Button>
+
                     <!-- Loading Indicator -->
                     <TextBlock Text="Loading from database..." Foreground="#4F46E5" FontWeight="SemiBold" VerticalAlignment="Center" Margin="14,0,0,6">
                         <TextBlock.Style>

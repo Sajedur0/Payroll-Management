@@ -6,6 +6,7 @@ using System.Windows;
 using Microsoft.Win32;
 using PayrollManagement.Data;
 using PayrollManagement.Models;
+using PayrollManagement.Reports;
 using PayrollManagement.Views;
 
 namespace PayrollManagement.ViewModels
@@ -166,6 +167,8 @@ namespace PayrollManagement.ViewModels
         public RelayCommand ImportExcelCommand { get; }
         public RelayCommand RefreshCommand { get; }
         public RelayCommand SearchCommand { get; }
+        public RelayCommand ExportListPdfCommand { get; }
+        public RelayCommand ExportProfilePdfCommand { get; }
 
         public EmployeeViewModel()
         {
@@ -175,6 +178,8 @@ namespace PayrollManagement.ViewModels
             ImportExcelCommand = new RelayCommand(async _ => await ImportExcelAsync());
             RefreshCommand = new RelayCommand(async _ => await LoadAsync());
             SearchCommand = new RelayCommand(async _ => await LoadAsync());
+            ExportListPdfCommand = new RelayCommand(async _ => await ExportListPdfAsync(), _ => Employees.Count > 0);
+            ExportProfilePdfCommand = new RelayCommand(async _ => await ExportProfilePdfAsync(), _ => HasSelectedEmployee);
 
             _ = LoadAsync();
         }
@@ -525,6 +530,64 @@ namespace PayrollManagement.ViewModels
             finally
             {
                 IsLoading = false;
+            }
+        }
+
+        public async Task ExportListPdfAsync()
+        {
+            if (Employees.Count == 0)
+            {
+                ErrorMessage = "No employees to export.";
+                return;
+            }
+
+            var dlg = new SaveFileDialog
+            {
+                FileName = "Employee_Information",
+                Filter = "PDF Document (*.pdf)|*.pdf",
+                DefaultExt = ".pdf"
+            };
+            if (dlg.ShowDialog() != true) return;
+
+            try
+            {
+                var all = await _repo.GetEmployeesAsync(null);
+                ReportPdfBuilder.BuildEmployeeInfoPdf(dlg.FileName, all);
+                SuccessMessage = $"✓ Employee list exported to {dlg.FileName}";
+            }
+            catch (Exception ex)
+            {
+                ErrorMessage = $"Export failed: {ex.Message}";
+            }
+        }
+
+        public async Task ExportProfilePdfAsync()
+        {
+            if (SelectedEmployee == null)
+            {
+                ErrorMessage = "Please select an employee to export.";
+                return;
+            }
+
+            var emp = SelectedEmployee;
+            var dlg = new SaveFileDialog
+            {
+                FileName = $"Employee_Profile_{emp.EmployeeCode}",
+                Filter = "PDF Document (*.pdf)|*.pdf",
+                DefaultExt = ".pdf"
+            };
+            if (dlg.ShowDialog() != true) return;
+
+            try
+            {
+                var all = await _repo.GetEmployeesAsync(null);
+                var full = all.FirstOrDefault(e => e.EmpID == emp.EmpID) ?? emp;
+                ReportPdfBuilder.BuildEmployeeProfilePdf(dlg.FileName, full);
+                SuccessMessage = $"✓ Employee profile exported to {dlg.FileName}";
+            }
+            catch (Exception ex)
+            {
+                ErrorMessage = $"Export failed: {ex.Message}";
             }
         }
 

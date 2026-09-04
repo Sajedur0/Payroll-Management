@@ -1,10 +1,12 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Data;
+using System.IO;
 using System.Runtime.CompilerServices;
 using System.Windows;
 using PayrollManagement.Data;
 using PayrollManagement.Reports;
+using PayrollManagement.Views;
 using Microsoft.Win32;
 
 namespace PayrollManagement.ViewModels
@@ -22,16 +24,56 @@ namespace PayrollManagement.ViewModels
         public string EmpId { get => _empId; set { _empId = value; Filters.EmpId = value; OnPropertyChanged(); } }
 
         private string _section = "All";
-        public string Section { get => _section; set { _section = value; Filters.Section = value; OnPropertyChanged(); RefreshDependentFilters(); } }
+        public string Section
+        {
+            get => _section;
+            set
+            {
+                if (value == null) return;
+                if (_section == value) return;
+                _section = value; Filters.Section = value; OnPropertyChanged();
+                RefreshDependentFilters();
+            }
+        }
 
         private string _designation = "All";
-        public string Designation { get => _designation; set { _designation = value; Filters.Designation = value; OnPropertyChanged(); RefreshDependentFilters(); } }
+        public string Designation
+        {
+            get => _designation;
+            set
+            {
+                if (value == null) return;
+                if (_designation == value) return;
+                _designation = value; Filters.Designation = value; OnPropertyChanged();
+                RefreshDependentFilters();
+            }
+        }
 
         private string _category = "All";
-        public string Category { get => _category; set { _category = value; Filters.Category = value; OnPropertyChanged(); RefreshDependentFilters(); } }
+        public string Category
+        {
+            get => _category;
+            set
+            {
+                if (value == null) return;
+                if (_category == value) return;
+                _category = value; Filters.Category = value; OnPropertyChanged();
+                RefreshDependentFilters();
+            }
+        }
 
         private string _shift = "All";
-        public string Shift { get => _shift; set { _shift = value; Filters.Shift = value; OnPropertyChanged(); RefreshDependentFilters(); } }
+        public string Shift
+        {
+            get => _shift;
+            set
+            {
+                if (value == null) return;
+                if (_shift == value) return;
+                _shift = value; Filters.Shift = value; OnPropertyChanged();
+                RefreshDependentFilters();
+            }
+        }
 
         private DateTime? _fromDate = DateTime.Today.AddDays(-7);
         public DateTime? FromDate { get => _fromDate; set { _fromDate = value; Filters.FromDate = value?.ToString("yyyy-MM-dd") ?? ""; Filters.Date = ""; OnPropertyChanged(); } }
@@ -110,6 +152,7 @@ namespace PayrollManagement.ViewModels
         public RelayCommand DutyDurationCommand { get; }
         public RelayCommand MonthlySummaryCommand { get; }
         public RelayCommand ExportCommand { get; }
+        public RelayCommand PrintCommand { get; }
 
         public ReportViewModel()
         {
@@ -122,33 +165,93 @@ namespace PayrollManagement.ViewModels
             DutyDurationCommand = new RelayCommand(_ => RunReport("DutyDuration"));
             MonthlySummaryCommand = new RelayCommand(_ => RunReport("Monthly"));
             ExportCommand = new RelayCommand(_ => Export());
+            PrintCommand = new RelayCommand(_ => Print());
             _ = LoadFilterOptionsAsync();
         }
 
+        private int _optionsLoadSeq;
+        private bool _suppressOptionRefresh;
+
         private async Task LoadFilterOptionsAsync()
         {
+            int seq = ++_optionsLoadSeq;
+            // Snapshot on UI thread so background query sees a stable filter set.
+            string section = _section, designation = _designation, category = _category, shift = _shift;
+            var snapshot = new ReportFilters
+            {
+                Section = section, Designation = designation, Category = category, Shift = shift
+            };
             try
             {
-                await Task.Run(() =>
+                var (sections, designations, categories, shifts) = await Task.Run(() =>
                 {
-                    var sections = ReportQueryBuilder.FilteredValues("Section", Filters);
-                    var designations = ReportQueryBuilder.FilteredValues("Designation", Filters);
-                    var categories = ReportQueryBuilder.FilteredValues("Category", Filters);
-                    var shifts = ReportQueryBuilder.FilteredValues("Shift", Filters);
-                    Application.Current?.Dispatcher.Invoke(() =>
+                    var s1 = ReportQueryBuilder.FilteredValues("Section", snapshot);
+                    var s2 = ReportQueryBuilder.FilteredValues("Designation", snapshot);
+                    var s3 = ReportQueryBuilder.FilteredValues("Category", snapshot);
+                    var s4 = ReportQueryBuilder.FilteredValues("Shift", snapshot);
+                    return (s1, s2, s3, s4);
+                });
+                if (seq != _optionsLoadSeq) return; // a newer refresh superseded this one
+                var dispatcher = Application.Current?.Dispatcher;
+                if (dispatcher == null) return;
+                await dispatcher.InvokeAsync(() =>
+                {
+                    if (seq != _optionsLoadSeq) return;
+                    _suppressOptionRefresh = true;
+                    try
                     {
-                        SectionOptions.Clear(); SectionOptions.Add("All"); foreach (var s in sections) SectionOptions.Add(s);
-                        DesignationOptions.Clear(); DesignationOptions.Add("All"); foreach (var s in designations) DesignationOptions.Add(s);
-                        CategoryOptions.Clear(); CategoryOptions.Add("All"); foreach (var s in categories) CategoryOptions.Add(s);
-                        ShiftOptions.Clear(); ShiftOptions.Add("All"); foreach (var s in shifts) ShiftOptions.Add(s);
-                    });
+                        UpdateOptions(SectionOptions, sections, ref _section, nameof(Section));
+                        UpdateOptions(DesignationOptions, designations, ref _designation, nameof(Designation));
+                        UpdateOptions(CategoryOptions, categories, ref _category, nameof(Category));
+                        UpdateOptions(ShiftOptions, shifts, ref _shift, nameof(Shift));
+                    }
+                    finally { _suppressOptionRefresh = false; }
                 });
             }
             catch { }
         }
 
+        private void UpdateOptions(ObservableCollection<string> options, List<string> values, ref string field, string propertyName)
+        {
+            var fresh = new List<string> { "All" };
+            foreach (var v in values)
+            {
+                var t = v?.Trim();
+                if (!string.IsNullOrEmpty(t) && !fresh.Contains(t)) fresh.Add(t);
+            }
+            // Avoid Clear() when nothing changed: Clear collapses the open popup
+            // and pushes SelectedItem=null into the setter (dropdown "কাজ করে না").
+            bool same = options.Count == fresh.Count;
+            if (same)
+            {
+                for (int k = 0; k < fresh.Count; k++)
+                {
+                    if (options[k] != fresh[k]) { same = false; break; }
+                }
+            }
+            if (!same)
+            {
+                options.Clear();
+                foreach (var s in fresh) options.Add(s);
+            }
+            // Current selection vanished due to dependent narrowing -> fall back to "All".
+            if (!fresh.Contains(field))
+            {
+                field = "All";
+                switch (propertyName)
+                {
+                    case nameof(Section): Filters.Section = "All"; break;
+                    case nameof(Designation): Filters.Designation = "All"; break;
+                    case nameof(Category): Filters.Category = "All"; break;
+                    case nameof(Shift): Filters.Shift = "All"; break;
+                }
+                OnPropertyChanged(propertyName);
+            }
+        }
+
         private void RefreshDependentFilters()
         {
+            if (_suppressOptionRefresh) return;
             _ = LoadFilterOptionsAsync();
         }
 
@@ -242,32 +345,72 @@ namespace PayrollManagement.ViewModels
                 Filters.ToDate = Filters.FromDate;
         }
 
+        private static Window? OwnerWindow => Application.Current?.MainWindow;
+
         private void Export()
         {
+            // Mirrors Python export_current_report_pdf (reports_page.py:1403-1428).
             if (Result == null || Result.Rows.Count == 0)
             {
-                MessageBox.Show("No data to export. Generate a report first.", "Export", MessageBoxButton.OK, MessageBoxImage.Information);
+                MessageBox.Show("No report data to export", "Info", MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
             }
-            var defaultName = ReportNamingHelper.ExportDefaultFilename(ReportTitle, Filters);
+            var options = ReportExportSettingsDialog.ShowSettings(OwnerWindow, "Export", ReportTitle, Filters);
+            if (options is null) return; // user pressed Cancel
+
             var dlg = new SaveFileDialog
             {
-                FileName = defaultName,
-                Filter = "PDF Document (*.pdf)|*.pdf",
+                Title = "Save Report",
+                FileName = ReportNamingHelper.ExportDefaultFilename(ReportTitle, Filters),
+                Filter = "PDF Files (*.pdf)|*.pdf",
                 DefaultExt = ".pdf"
             };
-            if (dlg.ShowDialog() == true)
+            if (dlg.ShowDialog() != true) return;
+            string path = dlg.FileName.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase)
+                ? dlg.FileName : dlg.FileName + ".pdf";
+
+            try
             {
-                try
-                {
-                    var filterSummary = ReportNamingHelper.FilterSummary(Filters, ReportTitle.Contains("Monthly") ? "monthly" : null);
-                    ReportPdfBuilder.Build(dlg.FileName, ReportTitle, filterSummary, Result, new ReportPdfOptions());
-                    MessageBox.Show($"Exported to {dlg.FileName}", "Export", MessageBoxButton.OK, MessageBoxImage.Information);
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"Export failed: {ex.Message}", "Export", MessageBoxButton.OK, MessageBoxImage.Error);
-                }
+                var filterSummary = ReportNamingHelper.FilterSummary(Filters, ReportTitle.Contains("Monthly") ? "monthly" : null);
+                ReportPdfBuilder.Build(path, ReportTitle, filterSummary, Result, options.ToPdfOptions());
+                var open = MessageBox.Show($"PDF saved successfully:\n{path}\n\nOpen now?",
+                    "Report Saved", MessageBoxButton.YesNo, MessageBoxImage.Information);
+                if (open == MessageBoxResult.Yes)
+                    _ = System.Diagnostics.Process.Start(
+                        new System.Diagnostics.ProcessStartInfo(path) { UseShellExecute = true });
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Failed to export PDF: {ex.Message}", "Error",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void Print()
+        {
+            // Mirrors Python print_current_report (reports_page.py:1786-1803).
+            if (Result == null || Result.Rows.Count == 0)
+            {
+                MessageBox.Show("No report data to print", "Info", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+            var options = ReportExportSettingsDialog.ShowSettings(OwnerWindow, "Print", ReportTitle, Filters);
+            if (options is null) return; // user pressed Cancel
+
+            string tmp = Path.Combine(Path.GetTempPath(), $"payroll_print_{DateTimeOffset.UtcNow.ToUnixTimeSeconds()}.pdf");
+            try
+            {
+                var filterSummary = ReportNamingHelper.FilterSummary(Filters, ReportTitle.Contains("Monthly") ? "monthly" : null);
+                ReportPdfBuilder.Build(tmp, ReportTitle, filterSummary, Result, options.ToPdfOptions());
+                // Open in the default PDF viewer as the print preview; the user prints
+                // from there applying options.PaperSize + options.Orientation to page setup.
+                _ = System.Diagnostics.Process.Start(
+                    new System.Diagnostics.ProcessStartInfo(tmp) { UseShellExecute = true });
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Failed to show preview: {ex.Message}", "Error",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 

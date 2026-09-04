@@ -56,6 +56,8 @@ namespace PayrollManagement.Reports
                 parts.Add($"Date={SanitizeFilenameValue(filters.FromDate)}_to_{SanitizeFilenameValue(filters.ToDate)}");
             else if (!string.IsNullOrEmpty(filters.Date))
                 parts.Add($"Date={SanitizeFilenameValue(filters.Date)}");
+            else if (!string.IsNullOrEmpty(filters.Month))
+                parts.Add($"Month={SanitizeFilenameValue(filters.Month)}");
 
             if (parts.Count == 1) parts.Add("All");
             return string.Join(" - ", parts);
