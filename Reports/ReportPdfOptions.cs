@@ -366,6 +366,7 @@ namespace PayrollManagement.Reports
         }
 
         // ── Build individual employee profile PDF ───────────────
+        // Shows ALL employee fields in a beautiful, sectioned profile layout.
         public static void BuildEmployeeProfilePdf(string filePath, Employee employee,
             CompanyDetails? company = null, ReportPdfOptions? options = null)
         {
@@ -377,28 +378,59 @@ namespace PayrollManagement.Reports
                 filePath = System.IO.Path.ChangeExtension(filePath, ".pdf");
 
             float topMargin = PdfDesign.VerticalMargin;
-            string employeeName = $"{employee.Name} ({employee.EmployeeCode})";
+            string empCode = string.IsNullOrWhiteSpace(employee.EmployeeCode) ? "-" : employee.EmployeeCode.Trim();
+            string empName = string.IsNullOrWhiteSpace(employee.Name) ? "-" : employee.Name.Trim();
+            string employeeName = $"{empName} ({empCode})";
 
-            var details = new List<KeyValuePair<string, string>>
+            string grossDisplay = employee.GrossWagesDisplay;
+            if (employee.GrossWages.HasValue)
+                grossDisplay += " BDT";
+
+            string dojDisplay = FormatDojDisplay(employee.DOJ, out string serviceLength);
+
+            bool isActive = string.Equals(employee.Status?.Trim(), "Active", StringComparison.OrdinalIgnoreCase);
+            bool isResigned = string.Equals(employee.Status?.Trim(), "Resigned", StringComparison.OrdinalIgnoreCase);
+            string statusBg = isActive ? "#DCFCE7" : isResigned ? "#FEE2E2" : "#FEF3C7";
+            string statusColor = isActive ? "#166534" : isResigned ? "#991B1B" : "#92400E";
+
+            string avatarInitial = empName != "-" ? empName.Trim().Substring(0, 1).ToUpperInvariant() : "?";
+            string designationLine = JoinNonEmpty(" • ", employee.Designation, employee.Department);
+            if (string.IsNullOrEmpty(designationLine))
+                designationLine = DisplayOrDash(employee.Section);
+            string subLine = JoinNonEmpty("  |  ", designationLine, string.IsNullOrWhiteSpace(employee.Section) ? null : $"Section: {employee.Section.Trim()}");
+
+            var jobRows = new List<KeyValuePair<string, string>>
             {
-                new("Name", employee.Name),
-                new("EmpID", employee.EmployeeCode),
-                new("Gender", employee.Gender ?? ""),
-                new("Designation", employee.Designation ?? ""),
-                new("Section", employee.Section ?? ""),
-                new("Department", employee.Department ?? ""),
-                new("Shift", employee.Shift ?? ""),
-                new("Category", employee.Category ?? ""),
-                new("Status", employee.Status ?? ""),
-                new("DOJ", employee.DOJ ?? ""),
-                new("Gross Wages", employee.GrossWagesDisplay),
-                new("Religion", employee.Religion ?? ""),
-                new("Father's Name", employee.FatherName ?? ""),
-                new("NID", employee.NID ?? ""),
-                new("Rocket AC", employee.RocketAC ?? ""),
-                new("Permanent Address", employee.PermAddress ?? ""),
-                new("Present Address", employee.PresAddress ?? ""),
+                new("SL (Serial)", employee.SL > 0 ? employee.SL.ToString() : "-"),
+                new("Emp ID", empCode),
+                new("Designation", DisplayOrDash(employee.Designation)),
+                new("Section", DisplayOrDash(employee.Section)),
+                new("Department", DisplayOrDash(employee.Department)),
+                new("Shift", DisplayOrDash(employee.Shift)),
+                new("Category", DisplayOrDash(employee.Category)),
+                new("Status", DisplayOrDash(employee.Status)),
+                new("Date of Joining", dojDisplay),
+                new("Service Length", serviceLength),
+                new("Gross Wages", grossDisplay),
             };
+
+            var personalRows = new List<KeyValuePair<string, string>>
+            {
+                new("Full Name", empName),
+                new("Father's Name", DisplayOrDash(employee.FatherName)),
+                new("Gender", DisplayOrDash(employee.Gender)),
+                new("Religion", DisplayOrDash(employee.Religion)),
+                new("NID", DisplayOrDash(employee.NID)),
+            };
+
+            var paymentRows = new List<KeyValuePair<string, string>>
+            {
+                new("Rocket Account", DisplayOrDash(employee.RocketAC)),
+                new("Present Address", DisplayOrDash(employee.PresAddress)),
+                new("Permanent Address", DisplayOrDash(employee.PermAddress)),
+            };
+
+            string generatedOn = DateTime.Now.ToString("dd MMM yyyy, hh:mm tt");
 
             Document.Create(container =>
             {
@@ -413,50 +445,190 @@ namespace PayrollManagement.Reports
 
                     if (options.RepeatCompanyHeaderOnEveryPage)
                         page.Header().Column(col => DrawCompanyHeader(col, company,
-                            "Employee Individual Report", employeeName));
+                            "Employee Profile", employeeName));
 
-                    page.Content().PaddingTop(6).Column(col =>
+                    page.Content().PaddingTop(4).Column(col =>
                     {
+                        // ── Title ──
                         col.Item().AlignCenter().Text("Employee Individual Report")
                             .FontFamily(PdfDesign.HeaderFont).Bold().FontSize(14).FontColor(PdfDesign.TitleBlue);
-                        col.Item().AlignCenter().Text(employeeName)
-                            .FontFamily(PdfDesign.BodyFont).FontSize(9);
-                        col.Item().PaddingTop(10).Table(table =>
+                        col.Item().PaddingTop(1).AlignCenter().Text($"Complete profile information of {employeeName}")
+                            .FontFamily(PdfDesign.BodyFont).FontSize(8.5f).FontColor("#6B7280");
+
+                        // ── Identity banner ──
+                        col.Item().PaddingTop(8).Background(PdfDesign.NavyText).Padding(12).Row(row =>
                         {
-                            table.ColumnsDefinition(cols =>
+                            row.ConstantItem(52).AlignMiddle().AlignCenter()
+                                .Background(Colors.White).Padding(9)
+                                .Text(avatarInitial)
+                                .FontFamily(PdfDesign.HeaderFont).Bold().FontSize(24).FontColor(PdfDesign.NavyText);
+
+                            row.RelativeItem().PaddingLeft(12).Column(inner =>
                             {
-                                cols.RelativeColumn(28);
-                                cols.RelativeColumn(72);
+                                inner.Item().Text(empName)
+                                    .FontFamily(PdfDesign.HeaderFont).Bold().FontSize(16).FontColor(Colors.White);
+                                if (!string.IsNullOrWhiteSpace(subLine))
+                                    inner.Item().PaddingTop(2).Text(subLine)
+                                        .FontFamily(PdfDesign.BodyFont).FontSize(9).FontColor("#C7D2FE");
+
+                                inner.Item().PaddingTop(7).Row(badges =>
+                                {
+                                    badges.AutoItem().Background(Colors.White)
+                                        .PaddingLeft(9).PaddingRight(9).PaddingTop(3).PaddingBottom(3)
+                                        .Text($"ID: {empCode}")
+                                        .FontFamily(PdfDesign.HeaderFont).Bold().FontSize(8.5f).FontColor(PdfDesign.NavyText);
+                                    badges.AutoItem().PaddingLeft(6).Background(statusBg)
+                                        .PaddingLeft(9).PaddingRight(9).PaddingTop(3).PaddingBottom(3)
+                                        .Text(DisplayOrDash(employee.Status))
+                                        .FontFamily(PdfDesign.HeaderFont).Bold().FontSize(8.5f).FontColor(statusColor);
+                                    if (employee.SL > 0)
+                                        badges.AutoItem().PaddingLeft(6).Background("#312E81")
+                                            .PaddingLeft(9).PaddingRight(9).PaddingTop(3).PaddingBottom(3)
+                                            .Text($"SL: {employee.SL}")
+                                            .FontFamily(PdfDesign.HeaderFont).Bold().FontSize(8.5f).FontColor(Colors.White);
+                                });
                             });
-
-                            foreach (var row in details)
-                            {
-                                table.Cell()
-                                    .Background(PdfDesign.LabelBg)
-                                    .Border(PdfDesign.GridLineWidth).BorderColor(PdfDesign.GridGray)
-                                    .PaddingLeft(7).PaddingRight(7).PaddingTop(6).PaddingBottom(6)
-                                    .Text(row.Key)
-                                    .FontFamily(PdfDesign.HeaderFont).Bold().FontSize(9).FontColor(PdfDesign.NavyText);
-
-                                table.Cell()
-                                    .Background(PdfDesign.White)
-                                    .Border(PdfDesign.GridLineWidth).BorderColor(PdfDesign.GridGray)
-                                    .PaddingLeft(7).PaddingRight(7).PaddingTop(6).PaddingBottom(6)
-                                    .Text(row.Value)
-                                    .FontFamily(PdfDesign.BodyFont).FontSize(9);
-                            }
                         });
+
+                        // ── Quick stat cards ──
+                        col.Item().PaddingTop(8).Row(stats =>
+                        {
+                            DrawProfileStatCard(stats.RelativeItem(), "GROSS WAGES", grossDisplay);
+                            stats.RelativeItem().PaddingLeft(6).Element(e => DrawProfileStatCard(e, "JOINING DATE", dojDisplay));
+                            stats.RelativeItem().PaddingLeft(6).Element(e => DrawProfileStatCard(e, "SERVICE LENGTH", serviceLength));
+                            stats.RelativeItem().PaddingLeft(6).Element(e => DrawProfileStatCard(e, "SHIFT / CATEGORY",
+                                $"{DisplayOrDash(employee.Shift)} / {DisplayOrDash(employee.Category)}"));
+                        });
+
+                        // ── Grouped detail sections (all fields) ──
+                        col.Item().PaddingTop(10).Element(e => DrawProfileSection(e, "1. Employment / Job Information", jobRows));
+                        col.Item().PaddingTop(8).Element(e => DrawProfileSection(e, "2. Personal Information", personalRows));
+                        col.Item().PaddingTop(8).Element(e => DrawProfileSection(e, "3. Address & Payment Information", paymentRows));
+
+                        // ── Signature block ──
+                        col.Item().PaddingTop(16).Row(sign =>
+                        {
+                            DrawSignatureCell(sign.RelativeItem(), "Prepared By");
+                            sign.RelativeItem().PaddingLeft(24).Element(e => DrawSignatureCell(e, "Checked By"));
+                            sign.RelativeItem().PaddingLeft(24).Element(e => DrawSignatureCell(e, "Approved By"));
+                        });
+                        col.Item().PaddingTop(6).Text($"Generated on: {generatedOn}  •  Total fields: {jobRows.Count + personalRows.Count + paymentRows.Count}")
+                            .FontFamily(PdfDesign.BodyFont).FontSize(7.5f).FontColor("#6B7280");
                     });
 
-                    page.Footer().AlignRight().Text(t =>
+                    page.Footer().Row(row =>
                     {
-                        t.Span("Page ").FontFamily(PdfDesign.PageNumberFont).FontSize(8);
-                        t.CurrentPageNumber().FontFamily(PdfDesign.PageNumberFont).FontSize(8);
-                        t.Span(" of ").FontFamily(PdfDesign.PageNumberFont).FontSize(8);
-                        t.TotalPages().FontFamily(PdfDesign.PageNumberFont).FontSize(8);
+                        row.RelativeItem().AlignLeft()
+                            .Text($"Generated: {generatedOn}")
+                            .FontFamily(PdfDesign.PageNumberFont).FontSize(7.5f).FontColor("#6B7280");
+                        row.ConstantItem(110).AlignRight().Text(t =>
+                        {
+                            t.Span("Page ").FontFamily(PdfDesign.PageNumberFont).FontSize(8).FontColor(Colors.Black);
+                            t.CurrentPageNumber().FontFamily(PdfDesign.PageNumberFont).FontSize(8).FontColor(Colors.Black);
+                            t.Span(" of ").FontFamily(PdfDesign.PageNumberFont).FontSize(8).FontColor(Colors.Black);
+                            t.TotalPages().FontFamily(PdfDesign.PageNumberFont).FontSize(8).FontColor(Colors.Black);
+                        });
                     });
                 });
             }).GeneratePdf(filePath);
+        }
+
+        private static string DisplayOrDash(string? value)
+            => string.IsNullOrWhiteSpace(value) ? "-" : value.Trim();
+
+        private static string JoinNonEmpty(string separator, params string?[] parts)
+            => string.Join(separator, parts.Where(p => !string.IsNullOrWhiteSpace(p)).Select(p => p!.Trim()));
+
+        private static string FormatDojDisplay(string? doj, out string serviceLength)
+        {
+            serviceLength = "-";
+            if (string.IsNullOrWhiteSpace(doj))
+                return "-";
+
+            if (!DateTime.TryParse(doj.Trim(), out var joinDate))
+                return doj.Trim();
+
+            string formatted = joinDate.ToString("dd MMM yyyy");
+            try
+            {
+                var today = DateTime.Today;
+                if (joinDate.Date > today)
+                {
+                    serviceLength = "0 month(s)";
+                    return formatted;
+                }
+                int years = today.Year - joinDate.Year;
+                int months = today.Month - joinDate.Month;
+                if (today.Day < joinDate.Day) months--;
+                if (months < 0) { years--; months += 12; }
+                if (years < 0) { years = 0; months = 0; }
+                serviceLength = years > 0 ? $"{years} yr(s) {months} mo(s)" : $"{months} mo(s)";
+            }
+            catch { serviceLength = "-"; }
+            return formatted;
+        }
+
+        private static void DrawProfileStatCard(IContainer container, string label, string value)
+        {
+            container.Background(PdfDesign.LabelBg)
+                .Border(PdfDesign.GridLineWidth).BorderColor(PdfDesign.GridGray)
+                .PaddingLeft(7).PaddingRight(7).PaddingTop(6).PaddingBottom(6)
+                .Column(c =>
+                {
+                    c.Item().Text(label)
+                        .FontFamily(PdfDesign.HeaderFont).Bold().FontSize(7).FontColor("#6B7280");
+                    c.Item().PaddingTop(2).Text(string.IsNullOrWhiteSpace(value) ? "-" : value)
+                        .FontFamily(PdfDesign.HeaderFont).Bold().FontSize(9).FontColor(PdfDesign.NavyText);
+                });
+        }
+
+        private static void DrawProfileSection(IContainer container, string title, List<KeyValuePair<string, string>> rows)
+        {
+            container.Column(col =>
+            {
+                col.Item().Background(PdfDesign.NavyText)
+                    .PaddingLeft(9).PaddingRight(9).PaddingTop(6).PaddingBottom(6)
+                    .Text(title)
+                    .FontFamily(PdfDesign.HeaderFont).Bold().FontSize(10).FontColor(Colors.White);
+
+                col.Item().Table(table =>
+                {
+                    table.ColumnsDefinition(cols =>
+                    {
+                        cols.RelativeColumn(32);
+                        cols.RelativeColumn(68);
+                    });
+
+                    foreach (var row in rows)
+                    {
+                        table.Cell()
+                            .Background(PdfDesign.LabelBg)
+                            .Border(PdfDesign.GridLineWidth).BorderColor(PdfDesign.GridGray)
+                            .PaddingLeft(8).PaddingRight(8).PaddingTop(5).PaddingBottom(5)
+                            .AlignLeft().AlignMiddle()
+                            .Text(row.Key)
+                            .FontFamily(PdfDesign.HeaderFont).Bold().FontSize(8.5f).FontColor(PdfDesign.NavyText);
+
+                        table.Cell()
+                            .Background(PdfDesign.White)
+                            .Border(PdfDesign.GridLineWidth).BorderColor(PdfDesign.GridGray)
+                            .PaddingLeft(8).PaddingRight(8).PaddingTop(5).PaddingBottom(5)
+                            .AlignLeft().AlignMiddle()
+                            .Text(string.IsNullOrWhiteSpace(row.Value) ? "-" : row.Value)
+                            .FontFamily(PdfDesign.BodyFont).FontSize(8.5f).FontColor(Colors.Black);
+                    }
+                });
+            });
+        }
+
+        private static void DrawSignatureCell(IContainer container, string label)
+        {
+            container.Column(c =>
+            {
+                c.Item().PaddingTop(18).LineHorizontal(PdfDesign.GridLineWidth).LineColor("#111827");
+                c.Item().PaddingTop(3).AlignCenter().Text(label)
+                    .FontFamily(PdfDesign.BodyFont).FontSize(8).FontColor("#374151");
+            });
         }
 
         // ── Helpers ─────────────────────────────────────────────

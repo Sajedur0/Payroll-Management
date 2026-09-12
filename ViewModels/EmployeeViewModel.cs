@@ -1,6 +1,7 @@
 ﻿using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Globalization;
+using System.IO;
 using System.Runtime.CompilerServices;
 using System.Windows;
 using Microsoft.Win32;
@@ -570,9 +571,13 @@ namespace PayrollManagement.ViewModels
             }
 
             var emp = SelectedEmployee;
+            string safeName = string.Concat((emp.Name ?? "Employee").Trim().Split(Path.GetInvalidFileNameChars()));
+            if (string.IsNullOrWhiteSpace(safeName)) safeName = "Employee";
+            if (safeName.Length > 40) safeName = safeName.Substring(0, 40).Trim();
+            string safeCode = string.IsNullOrWhiteSpace(emp.EmployeeCode) ? emp.SL.ToString() : emp.EmployeeCode.Trim();
             var dlg = new SaveFileDialog
             {
-                FileName = $"Employee_Profile_{emp.EmployeeCode}",
+                FileName = $"Employee_Profile_{safeCode}_{safeName}",
                 Filter = "PDF Document (*.pdf)|*.pdf",
                 DefaultExt = ".pdf"
             };
