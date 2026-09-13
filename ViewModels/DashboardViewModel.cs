@@ -1,5 +1,4 @@
-﻿using System.Collections.ObjectModel;
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows;
 using LiveChartsCore;
@@ -9,13 +8,6 @@ using PayrollManagement.Models;
 
 namespace PayrollManagement.ViewModels
 {
-    // Legacy compatibility
-    public class ActivityItem
-    {
-        public string Description { get; set; } = "";
-        public string Time { get; set; } = "";
-    }
-
     public class DashboardViewModel : INotifyPropertyChanged
     {
         private readonly AttendanceRepository _repo = new();
@@ -39,12 +31,6 @@ namespace PayrollManagement.ViewModels
 
         private Axis[] _weekDaysAxis = Array.Empty<Axis>();
         public Axis[] WeekDaysAxis { get => _weekDaysAxis; set { _weekDaysAxis = value; OnPropertyChanged(); } }
-
-        private ObservableCollection<ActivityLogItem> _recentActivities = new();
-        public ObservableCollection<ActivityLogItem> RecentActivities { get => _recentActivities; set { _recentActivities = value; OnPropertyChanged(); } }
-
-        // For XAML binding compatibility (old ActivityItem)
-        public IEnumerable<ActivityItem> RecentActivitiesLegacy => RecentActivities.Select(a => new ActivityItem { Description = a.Description, Time = a.TimeDisplay });
 
         private bool _isLoading;
         public bool IsLoading { get => _isLoading; set { _isLoading = value; OnPropertyChanged(); OnPropertyChanged(nameof(StatusMessage)); } }
@@ -117,10 +103,6 @@ namespace PayrollManagement.ViewModels
                     new Axis { Labels = labels }
                 };
 
-                // Recent activities
-                var activities = await _repo.GetRecentActivitiesAsync(5);
-                RecentActivities = new ObservableCollection<ActivityLogItem>(activities);
-                OnPropertyChanged(nameof(RecentActivitiesLegacy));
             }
             catch (Exception ex)
             {
@@ -159,16 +141,6 @@ namespace PayrollManagement.ViewModels
                 new Axis { Labels = new[] { "Sat", "Sun", "Mon", "Tue", "Wed", "Thu", "Fri" } }
             };
 
-            if (RecentActivities.Count == 0)
-            {
-                RecentActivities = new ObservableCollection<ActivityLogItem>
-                {
-                    new ActivityLogItem { Description = "Rahim Uddin checked in", LogTime = DateTime.Now.AddMinutes(-15) },
-                    new ActivityLogItem { Description = "Karim Ahmed applied for leave", LogTime = DateTime.Now.AddMinutes(-30) },
-                    new ActivityLogItem { Description = "Salma Khatun checked out", LogTime = DateTime.Now.AddDays(-1) },
-                    new ActivityLogItem { Description = "New employee added: Jamal Hossain", LogTime = DateTime.Now.AddDays(-1).AddHours(-2) },
-                };
-            }
         }
 
         public event PropertyChangedEventHandler? PropertyChanged;

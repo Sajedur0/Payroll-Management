@@ -127,44 +127,6 @@ namespace PayrollManagement.Data
             return list.OrderBy(x => x.AttendanceDate).ToList();
         }
 
-        public async Task<List<ActivityLogItem>> GetRecentActivitiesAsync(int top = 5)
-        {
-            var list = new List<ActivityLogItem>();
-            using var conn = await DbConfig.GetOpenConnectionAsync();
-            if (conn == null) return list;
-
-            try
-            {
-                var sql = $@"
-                    SELECT TOP ({top})
-                        r.LogID,
-                        ISNULL(e.Name, 'Employee ' + CAST(r.EmpID AS NVARCHAR)) + ' (EmpID: ' + CAST(r.EmpID AS NVARCHAR) + ') - ' +
-                        CASE 
-                            WHEN r.OutTime IS NOT NULL AND r.OutTime <> '' THEN 'Out: ' + r.OutTime + ' (In: ' + ISNULL(r.InTime, '-') + ')'
-                            ELSE 'In: ' + ISNULL(r.InTime, '-')
-                        END AS Description,
-                        ISNULL(TRY_CAST(r.InDateTime AS DATETIME), TRY_CAST(r.Date AS DATETIME)) AS LogTime
-                    FROM dbo.RawData r
-                    LEFT JOIN dbo.EmployeeInfo e ON r.EmpID = e.EmpID
-                    ORDER BY r.LogID DESC";
-
-                using var cmd = new SqlCommand(sql, conn);
-                using var reader = await cmd.ExecuteReaderAsync();
-                while (await reader.ReadAsync())
-                {
-                    list.Add(new ActivityLogItem
-                    {
-                        LogId = reader.GetInt32(0),
-                        Description = reader.IsDBNull(1) ? "Attendance logged" : reader.GetString(1),
-                        LogTime = reader.IsDBNull(2) ? DateTime.Now : reader.GetDateTime(2)
-                    });
-                }
-            }
-            catch { }
-
-            return list;
-        }
-
         // ================= Attendance Log =================
 
         public async Task<List<AttendanceRecord>> GetAttendanceLogAsync(DateTime? fromDate = null, DateTime? toDate = null, string? search = null)

@@ -161,21 +161,15 @@
                             <TextBox Text="{Binding GraceMinutes, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource FilterTextBox}"/>
                         </StackPanel>
 
+                        <StackPanel Grid.Row="1" Grid.Column="2" Margin="0,0,10,0">
+                            <TextBlock Text="FROM DATE" FontSize="10" FontWeight="SemiBold" Foreground="#6B7280" Margin="0,0,0,5"/>
+                            <DatePicker SelectedDate="{Binding FromDate}" Style="{StaticResource FilterDatePicker}"/>
+                        </StackPanel>
+                        <StackPanel Grid.Row="1" Grid.Column="3" Margin="0,0,0,0">
+                            <TextBlock Text="TO DATE" FontSize="10" FontWeight="SemiBold" Foreground="#6B7280" Margin="0,0,0,5"/>
+                            <DatePicker SelectedDate="{Binding ToDate}" Style="{StaticResource FilterDatePicker}"/>
+                        </StackPanel>
                     </Grid>
-
-                    <Border Background="#F9FAFB" BorderBrush="#F3F4F6" BorderThickness="1" CornerRadius="10" Padding="12" Margin="0,14,0,0">
-                        <Grid>
-                            <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
-                            <StackPanel Grid.Column="0" Margin="0,0,10,0">
-                                <TextBlock Text="FROM DATE" FontSize="10" FontWeight="SemiBold" Foreground="#6B7280" Margin="0,0,0,5"/>
-                                <DatePicker SelectedDate="{Binding FromDate}" Style="{StaticResource FilterDatePicker}"/>
-                            </StackPanel>
-                            <StackPanel Grid.Column="1" Margin="0,0,0,0">
-                                <TextBlock Text="TO DATE" FontSize="10" FontWeight="SemiBold" Foreground="#6B7280" Margin="0,0,0,5"/>
-                                <DatePicker SelectedDate="{Binding ToDate}" Style="{StaticResource FilterDatePicker}"/>
-                            </StackPanel>
-                        </Grid>
-                    </Border>
                 </StackPanel>
             </Border>
 

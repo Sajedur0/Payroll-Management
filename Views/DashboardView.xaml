@@ -118,33 +118,6 @@
                 </StackPanel>
             </Border>
 
-            <!-- Recent Activity -->
-            <Border Background="White" CornerRadius="14" Padding="20">
-                <Border.Effect>
-                    <DropShadowEffect BlurRadius="15" ShadowDepth="2" Opacity="0.08" Color="Black"/>
-                </Border.Effect>
-                <StackPanel>
-                    <TextBlock Text="Recent Activity" FontSize="16" FontWeight="Bold"
-                               Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,10"/>
-                    <ItemsControl ItemsSource="{Binding RecentActivities}">
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate>
-                                <Border BorderBrush="#F0F0F0" BorderThickness="0,0,0,1" Padding="0,10">
-                                    <Grid>
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="*"/>
-                                            <ColumnDefinition Width="Auto"/>
-                                        </Grid.ColumnDefinitions>
-                                        <TextBlock Text="{Binding Description}" Foreground="{StaticResource TextPrimaryBrush}" FontSize="13.5"/>
-                                        <TextBlock Grid.Column="1" Text="{Binding TimeDisplay}" Foreground="{StaticResource TextSecondaryBrush}" FontSize="12"/>
-                                    </Grid>
-                                </Border>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
-                </StackPanel>
-            </Border>
-
         </StackPanel>
     </ScrollViewer>
 </UserControl>

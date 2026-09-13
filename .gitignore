@@ -22,6 +22,9 @@ bld/
 [Pp]ublish*/
 PublishProfiles/
 
+## Dist / Published output
+dist/
+
 ## MSTest
 TestResult.xml
 [Tt]est[Rr]esult*/

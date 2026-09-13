@@ -1,6 +1,54 @@
 ﻿<UserControl x:Class="PayrollManagement.Views.AdminToolsView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <UserControl.Resources>
+        <!-- Modern tab header style for Admin Tools (scoped to this view) -->
+        <Style TargetType="RadioButton" x:Key="AdminToolTabButton">
+            <Setter Property="FontSize" Value="12.5"/>
+            <Setter Property="FontWeight" Value="Normal"/>
+            <Setter Property="Foreground" Value="#6B7280"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Padding" Value="14,0"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RadioButton">
+                        <Border x:Name="TabBg" Background="{TemplateBinding Background}" CornerRadius="8,8,0,0"
+                                Padding="{TemplateBinding Padding}">
+                            <StackPanel Orientation="Vertical">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                  RecognizesAccessKey="True"/>
+                                <Border x:Name="TabIndicator" Height="3" CornerRadius="1.5" Background="#4F46E5"
+                                        Visibility="Collapsed" Margin="0,2,0,0"/>
+                            </StackPanel>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="TabBg" Property="Background" Value="#EEF2FF"/>
+                                <Setter TargetName="TabIndicator" Property="Visibility" Value="Visible"/>
+                                <Setter Property="Foreground" Value="#1F2937"/>
+                                <Setter Property="FontWeight" Value="SemiBold"/>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="TabBg" Property="Background" Value="#EEF2FF"/>
+                                <Setter Property="Foreground" Value="#1F2937"/>
+                            </Trigger>
+                            <MultiTrigger>
+                                <MultiTrigger.Conditions>
+                                    <Condition Property="IsChecked" Value="True"/>
+                                    <Condition Property="IsMouseOver" Value="True"/>
+                                </MultiTrigger.Conditions>
+                                <Setter TargetName="TabBg" Property="Background" Value="#E0E7FF"/>
+                            </MultiTrigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
+
     <ScrollViewer Padding="16" Background="{StaticResource BackgroundBrush}" VerticalScrollBarVisibility="Auto">
         <StackPanel>
             <Border Background="White" CornerRadius="12" Padding="16" Margin="0,0,0,12">
@@ -16,10 +64,33 @@
                 </DockPanel>
             </Border>
 
-            <TabControl Background="White" BorderThickness="0" Padding="4">
-                <!-- Company Details -->
-                <TabItem Header="Company Details">
-                    <Border Padding="16">
+            <!-- Modern tab container: white card wrapping tab strip + content -->
+            <Border Background="White" CornerRadius="12" Margin="0,0,0,12">
+                <Border.Effect>
+                    <DropShadowEffect BlurRadius="12" ShadowDepth="1" Opacity="0.06" Color="Black"/>
+                </Border.Effect>
+                <DockPanel>
+                    <!-- Tab strip (bottom hairline separator) -->
+                    <Border DockPanel.Dock="Top" Background="White" BorderBrush="#E5E7EB" BorderThickness="0,0,0,1">
+                        <StackPanel Orientation="Horizontal" Margin="4,0,0,0">
+                            <RadioButton x:Name="TabCompanyDetails" Content="🏢  Company Details" GroupName="AdminToolsTabs"
+                                         Style="{StaticResource AdminToolTabButton}" IsChecked="True" Click="OnAdminTab_Click"/>
+                            <RadioButton x:Name="TabWeekEnd" Content="📅  Week End" GroupName="AdminToolsTabs"
+                                         Style="{StaticResource AdminToolTabButton}" Click="OnAdminTab_Click"/>
+                            <RadioButton x:Name="TabCompanyHoliday" Content="🎉  Company Holiday" GroupName="AdminToolsTabs"
+                                         Style="{StaticResource AdminToolTabButton}" Click="OnAdminTab_Click"/>
+                            <RadioButton x:Name="TabResignInfo" Content="🚪  Resign Info" GroupName="AdminToolsTabs"
+                                         Style="{StaticResource AdminToolTabButton}" Click="OnAdminTab_Click"/>
+                            <RadioButton x:Name="TabShiftChange" Content="🕐  Shift Change" GroupName="AdminToolsTabs"
+                                         Style="{StaticResource AdminToolTabButton}" Click="OnAdminTab_Click"/>
+                            <RadioButton x:Name="TabShiftCycle" Content="🔄  Shift Cycle" GroupName="AdminToolsTabs"
+                                         Style="{StaticResource AdminToolTabButton}" Click="OnAdminTab_Click"/>
+                        </StackPanel>
+                    </Border>
+                    <!-- Tab content panes -->
+                    <StackPanel>
+                        <!-- Company Details -->
+                        <Border x:Name="CompanyDetailsPane" Padding="16">
                         <StackPanel>
                             <TextBlock Text="Company Name" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,4"/>
                             <TextBox Text="{Binding CompanyName}" Padding="6,4" Margin="0,0,0,10"/>
@@ -30,11 +101,9 @@
                             <Button Content="Save Company Details" Command="{Binding SaveCompanyCommand}" Padding="14,7" Background="#4F46E5" Foreground="White" BorderThickness="0" Cursor="Hand" HorizontalAlignment="Left"/>
                         </StackPanel>
                     </Border>
-                </TabItem>
 
                 <!-- Week End -->
-                <TabItem Header="Week End">
-                    <Border Padding="16">
+                <Border x:Name="WeekEndPane" Padding="16" Visibility="Collapsed">
                         <StackPanel>
                             <TextBlock Text="Select weekend day to add" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,4"/>
                             <Grid>
@@ -58,11 +127,9 @@
                             </ListBox>
                         </StackPanel>
                     </Border>
-                </TabItem>
 
                 <!-- Company Holiday -->
-                <TabItem Header="Company Holiday">
-                    <Border Padding="16">
+                <Border x:Name="CompanyHolidayPane" Padding="16" Visibility="Collapsed">
                         <StackPanel>
                             <Grid>
                                 <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
@@ -117,11 +184,9 @@
                             </DataGrid>
                         </StackPanel>
                     </Border>
-                </TabItem>
 
                 <!-- Resign Info -->
-                <TabItem Header="Resign Info">
-                    <Border Padding="16">
+                <Border x:Name="ResignInfoPane" Padding="16" Visibility="Collapsed">
                         <StackPanel>
                             <Grid>
                                 <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
@@ -173,11 +238,9 @@
                             </DataGrid>
                         </StackPanel>
                     </Border>
-                </TabItem>
 
                 <!-- Shift Change -->
-                <TabItem Header="Shift Change">
-                    <Border Padding="16">
+                <Border x:Name="ShiftChangePane" Padding="16" Visibility="Collapsed">
                         <StackPanel>
                             <TextBlock Text="Static shift time (MERGE upsert on ShiftName). Out &lt;= In = Night duty." FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,8"/>
                             <Grid>
@@ -218,11 +281,9 @@
                             </DataGrid>
                         </StackPanel>
                     </Border>
-                </TabItem>
 
                 <!-- Shift Cycle -->
-                <TabItem Header="Shift Cycle">
-                    <Border Padding="16">
+                <Border x:Name="ShiftCyclePane" Padding="16" Visibility="Collapsed">
                         <StackPanel>
                             <Grid>
                                 <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
@@ -266,8 +327,9 @@
                             </DataGrid>
                         </StackPanel>
                     </Border>
-                </TabItem>
-            </TabControl>
+                </StackPanel>
+            </DockPanel>
+            </Border>
         </StackPanel>
     </ScrollViewer>
 </UserControl>

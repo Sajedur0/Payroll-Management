@@ -64,7 +64,6 @@
 ### 📊 Dashboard
 - Summary Cards: **Total Employees / Present Today / Absent Today / On Leave**
 - Weekly Attendance Trend chart (LiveChartsCore — SkiaSharp)
-- Recent Activity feed (last 5 logs)
 - Auto-refresh + Last refresh timestamp
 - Fallback dummy data if DB is unreachable
 

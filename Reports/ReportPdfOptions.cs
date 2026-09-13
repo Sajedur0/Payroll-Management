@@ -157,10 +157,6 @@ namespace PayrollManagement.Reports
             if (!filePath.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase))
                 filePath = System.IO.Path.ChangeExtension(filePath, ".pdf");
 
-            // Auto-landscape for wide reports (e.g. Monthly Summary).
-            bool useLandscape = options.Orientation == "Landscape"
-                                || (options.PaperName == "A4" && result.Columns.Count > 10);
-
             int colCount = result.Columns.Count;
             float dynamicFont = GetDynamicFontSize(colCount);
 
@@ -171,7 +167,6 @@ namespace PayrollManagement.Reports
                     container.Page(page =>
                     {
                         var (pw, ph) = ResolvePageSizePts(options);
-                        if (useLandscape) (pw, ph) = (ph, pw);
                         page.Size(pw, ph);
 
                         float hMargin = PdfDesign.HorizontalMargin;

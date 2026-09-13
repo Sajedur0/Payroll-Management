@@ -15,11 +15,4 @@ namespace PayrollManagement.Models
         public string DayLabel => AttendanceDate.ToString("ddd", System.Globalization.CultureInfo.InvariantCulture);
     }
 
-    public class ActivityLogItem
-    {
-        public int LogId { get; set; }
-        public string Description { get; set; } = "";
-        public DateTime LogTime { get; set; }
-        public string TimeDisplay => LogTime.ToString("g");
     }
-}
