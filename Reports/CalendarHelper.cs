@@ -1,3 +1,4 @@
+using System.Globalization;
 using PayrollManagement.Data;
 
 namespace PayrollManagement.Reports
@@ -8,12 +9,14 @@ namespace PayrollManagement.Reports
         {
             try
             {
-                return DbHelper.FetchRows("SELECT DayName FROM WeekEnd")
+                var days = DbHelper.FetchRows("SELECT DayName FROM dbo.WeekEnd")
                     .Select(r => (r[0] as string ?? "").Trim())
-                    .Where(d => d != "")
-                    .ToHashSet();
+                    .Where(d => !string.IsNullOrEmpty(d))
+                    .ToHashSet(StringComparer.OrdinalIgnoreCase);
+                if (days.Count == 0) days.Add("Friday");
+                return days;
             }
-            catch { return new HashSet<string>(); }
+            catch { return new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "Friday" }; }
         }
 
         public static HashSet<string> NonAbsentDays()
@@ -25,9 +28,14 @@ namespace PayrollManagement.Reports
 
         public static bool IsNonAbsentDate(string dateValue, HashSet<string> nonAbsentDays)
         {
-            if (string.IsNullOrEmpty(dateValue)) return false;
-            if (!DateTime.TryParseExact(dateValue, "yyyy-MM-dd", null,
-                    System.Globalization.DateTimeStyles.None, out var dt)) return false;
+            if (string.IsNullOrWhiteSpace(dateValue)) return false;
+            DateTime dt;
+            if (!DateTime.TryParseExact(dateValue.Trim(), "yyyy-MM-dd", CultureInfo.InvariantCulture,
+                    DateTimeStyles.None, out dt))
+            {
+                if (!DateTime.TryParse(dateValue.Trim(), CultureInfo.InvariantCulture, DateTimeStyles.None, out dt))
+                    return false;
+            }
             return nonAbsentDays.Contains(dt.DayOfWeek.ToString());
         }
 
@@ -36,7 +44,7 @@ namespace PayrollManagement.Reports
             try
             {
                 var rows = DbHelper.FetchRows(@"
-                    SELECT FestivalName, FromDate, ToDate FROM CompanyHoliday
+                    SELECT FestivalName, FromDate, ToDate FROM dbo.CompanyHoliday
                     WHERE NULLIF(LTRIM(RTRIM(FromDate)), '') IS NOT NULL");
 
                 var holidays = new Dictionary<string, string>();

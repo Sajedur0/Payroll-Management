@@ -63,9 +63,23 @@ namespace PayrollManagement.Data
             "Server=(localdb)\\MSSQLLocalDB;Database=FACEIDDB;Trusted_Connection=True;TrustServerCertificate=True;"
         };
 
+        private static string? _activeConnectionString;
+        public static string? ActiveConnectionString
+        {
+            get => _activeConnectionString;
+            set => _activeConnectionString = value;
+        }
+
+        private static string? _activeFaceIdConnectionString;
+        public static string? ActiveFaceIdConnectionString
+        {
+            get => _activeFaceIdConnectionString;
+            set => _activeFaceIdConnectionString = value;
+        }
+
         public static SqlConnection CreateConnection()
         {
-            return new SqlConnection(ConnectionString);
+            return new SqlConnection(ActiveConnectionString ?? ConnectionString);
         }
 
         /// <summary>
@@ -73,6 +87,17 @@ namespace PayrollManagement.Data
         /// </summary>
         public static async Task<bool> TestConnectionAsync()
         {
+            if (!string.IsNullOrEmpty(ActiveConnectionString))
+            {
+                try
+                {
+                    using var conn = new SqlConnection(ActiveConnectionString);
+                    await conn.OpenAsync();
+                    return true;
+                }
+                catch { }
+            }
+
             // Try primary first, then fallbacks
             var allStrings = new List<string> { ConnectionString };
             allStrings.AddRange(FallbackConnectionStrings.Where(s => s != ConnectionString));
@@ -83,6 +108,7 @@ namespace PayrollManagement.Data
                 {
                     using var conn = new SqlConnection(cs);
                     await conn.OpenAsync();
+                    ActiveConnectionString = cs;
                     return true;
                 }
                 catch { continue; }
@@ -92,6 +118,18 @@ namespace PayrollManagement.Data
 
         public static async Task<SqlConnection?> GetOpenConnectionAsync()
         {
+            if (!string.IsNullOrEmpty(ActiveConnectionString))
+            {
+                try
+                {
+                    var conn = new SqlConnection(ActiveConnectionString);
+                    await conn.OpenAsync();
+                    DbHelper.EnsureDatabaseTables(conn);
+                    return conn;
+                }
+                catch { }
+            }
+
             var allStrings = new List<string> { ConnectionString };
             allStrings.AddRange(FallbackConnectionStrings.Where(s => s != ConnectionString));
 
@@ -101,6 +139,8 @@ namespace PayrollManagement.Data
                 {
                     var conn = new SqlConnection(cs);
                     await conn.OpenAsync();
+                    ActiveConnectionString = cs;
+                    DbHelper.EnsureDatabaseTables(conn);
                     return conn;
                 }
                 catch { continue; }
@@ -113,6 +153,17 @@ namespace PayrollManagement.Data
         /// </summary>
         public static async Task<SqlConnection?> GetFaceIdDbConnectionAsync()
         {
+            if (!string.IsNullOrEmpty(ActiveFaceIdConnectionString))
+            {
+                try
+                {
+                    var conn = new SqlConnection(ActiveFaceIdConnectionString);
+                    await conn.OpenAsync();
+                    return conn;
+                }
+                catch { }
+            }
+
             var allStrings = new List<string> { FaceIdDbConnectionString };
             allStrings.AddRange(FaceIdFallbackConnectionStrings.Where(s => s != FaceIdDbConnectionString));
 
@@ -122,6 +173,7 @@ namespace PayrollManagement.Data
                 {
                     var conn = new SqlConnection(cs);
                     await conn.OpenAsync();
+                    ActiveFaceIdConnectionString = cs;
                     return conn;
                 }
                 catch { continue; }

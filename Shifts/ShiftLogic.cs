@@ -15,18 +15,43 @@ namespace PayrollManagement.Shifts
         public static readonly TimeSpan NightIn = new(20, 0, 0);
         public static readonly TimeSpan NightOut = new(8, 0, 0);
 
-        public static DateTime ParseDate(string value) =>
-            DateTime.ParseExact(value.Trim(), DateFormat, CultureInfo.InvariantCulture);
+        public static DateTime ParseDate(string value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+                return DateTime.Today;
+
+            if (DateTime.TryParseExact(value.Trim(), DateFormat, CultureInfo.InvariantCulture,
+                    DateTimeStyles.None, out var dt))
+                return dt;
+
+            if (DateTime.TryParse(value.Trim(), CultureInfo.InvariantCulture, DateTimeStyles.None, out var fallback))
+                return fallback;
+
+            return DateTime.Today;
+        }
 
         public static TimeSpan ParseTime(string value)
         {
-            string[] formats = { "HH:mm:ss", "HH:mm", "hh:mm:ss tt", "hh:mm tt" };
+            if (string.IsNullOrWhiteSpace(value))
+                throw new FormatException("Invalid time: empty or null string");
+
+            string[] formats = {
+                "HH:mm:ss", "HH:mm", "H:mm:ss", "H:mm",
+                "hh:mm:ss tt", "hh:mm tt", "h:mm:ss tt", "h:mm tt"
+            };
             foreach (var fmt in formats)
             {
                 if (DateTime.TryParseExact(value.Trim(), fmt, CultureInfo.InvariantCulture,
                         DateTimeStyles.None, out var dt))
                     return dt.TimeOfDay;
             }
+
+            if (TimeSpan.TryParse(value.Trim(), CultureInfo.InvariantCulture, out var ts))
+                return ts;
+
+            if (DateTime.TryParse(value.Trim(), CultureInfo.InvariantCulture, DateTimeStyles.None, out var fallbackDt))
+                return fallbackDt.TimeOfDay;
+
             throw new FormatException($"Invalid time: {value}");
         }
 
@@ -68,9 +93,19 @@ namespace PayrollManagement.Shifts
 
         public static double CalculateHours(string inDateTimeStr, string outDateTimeStr)
         {
-            var inDt = DateTime.ParseExact(inDateTimeStr, DateTimeFormat, CultureInfo.InvariantCulture);
-            var outDt = DateTime.ParseExact(outDateTimeStr, DateTimeFormat, CultureInfo.InvariantCulture);
+            var inDt = ParseDateTime(inDateTimeStr);
+            var outDt = ParseDateTime(outDateTimeStr);
             return (outDt - inDt).TotalHours;
+        }
+
+        private static DateTime ParseDateTime(string str)
+        {
+            if (DateTime.TryParseExact(str.Trim(), DateTimeFormat, CultureInfo.InvariantCulture,
+                    DateTimeStyles.None, out var dt))
+                return dt;
+            if (DateTime.TryParse(str.Trim(), CultureInfo.InvariantCulture, DateTimeStyles.None, out var anyDt))
+                return anyDt;
+            return DateTime.Today;
         }
 
         public static (string inDateTime, string outDateTime) BuildAttendanceDatetimes(
@@ -96,7 +131,7 @@ namespace PayrollManagement.Shifts
         {
             try
             {
-                var rows = DbHelper.FetchRows("SELECT ShiftName, DutyType, StartDate FROM ShiftCycleConfig");
+                var rows = DbHelper.FetchRows("SELECT ShiftName, DutyType, StartDate FROM dbo.ShiftCycleConfig");
                 var configs = new Dictionary<string, CycleConfig>();
                 foreach (var r in rows)
                 {
@@ -113,7 +148,7 @@ namespace PayrollManagement.Shifts
 
         public static void SaveCycleConfig(string shiftName, string dutyType, string startDate) =>
             DbHelper.ExecuteNonQuery(@"
-                MERGE ShiftCycleConfig AS target
+                MERGE dbo.ShiftCycleConfig AS target
                 USING (VALUES (@p0,@p1,@p2)) AS source (ShiftName, DutyType, StartDate)
                 ON target.ShiftName = source.ShiftName
                 WHEN MATCHED THEN
@@ -124,10 +159,10 @@ namespace PayrollManagement.Shifts
                 ("@p0", shiftName), ("@p1", dutyType), ("@p2", startDate));
 
         public static void DeleteCycleConfig(string shiftName) =>
-            DbHelper.ExecuteNonQuery("DELETE FROM ShiftCycleConfig WHERE ShiftName = @p0", ("@p0", shiftName));
+            DbHelper.ExecuteNonQuery("DELETE FROM dbo.ShiftCycleConfig WHERE ShiftName = @p0", ("@p0", shiftName));
 
         public static void ClearCycleConfigs() =>
-            DbHelper.ExecuteNonQuery("DELETE FROM ShiftCycleConfig");
+            DbHelper.ExecuteNonQuery("DELETE FROM dbo.ShiftCycleConfig");
 
         public static bool IsShiftInCycle(string shiftName)
         {
@@ -151,9 +186,17 @@ namespace PayrollManagement.Shifts
 
             var satOfWorkWeek = SaturdayOfWeek(workDate);
             var satOfStartWeek = SaturdayOfWeek(startDate);
-            if (satOfWorkWeek < satOfStartWeek) return null;
 
-            int weekIndex = (int)(satOfWorkWeek - satOfStartWeek).TotalDays / 7;
+            int weekIndex;
+            if (satOfWorkWeek >= satOfStartWeek)
+            {
+                weekIndex = (int)(satOfWorkWeek - satOfStartWeek).TotalDays / 7;
+            }
+            else
+            {
+                weekIndex = (int)(satOfStartWeek - satOfWorkWeek).TotalDays / 7;
+            }
+
             bool isStartingDay = cfg.DutyType == "Day";
             bool isDay = weekIndex % 2 == 0 ? isStartingDay : !isStartingDay;
             return isDay ? "Day" : "Night";
@@ -166,7 +209,7 @@ namespace PayrollManagement.Shifts
             try
             {
                 var rows = DbHelper.FetchRows(@"
-                    SELECT DutyType, InTime, OutTime FROM ShiftSchedule
+                    SELECT DutyType, InTime, OutTime FROM dbo.ShiftSchedule
                     WHERE UPPER(REPLACE(ShiftName, ' ', '')) = UPPER(REPLACE(@p0, ' ', ''))",
                     ("@p0", shiftName.Trim()));
                 if (rows.Count == 0) return null;
@@ -186,7 +229,7 @@ namespace PayrollManagement.Shifts
             var dutyType = DutyTypeForTimes(inT, outT);
 
             DbHelper.ExecuteNonQuery(@"
-                MERGE ShiftSchedule AS target
+                MERGE dbo.ShiftSchedule AS target
                 USING (VALUES (@p0,@p1,@p2,@p3,@p4))
                       AS source (ShiftName, DutyType, InTime, OutTime, Notes)
                 ON target.ShiftName = source.ShiftName
@@ -208,7 +251,7 @@ namespace PayrollManagement.Shifts
             {
                 var rows = DbHelper.FetchRows(@"
                     SELECT DutyType, InDateTime, OutDateTime, IsOvertime
-                    FROM ShiftRotationSchedule
+                    FROM dbo.ShiftRotationSchedule
                     WHERE UPPER(REPLACE(ShiftName, ' ', '')) = UPPER(REPLACE(@p0, ' ', ''))
                       AND ScheduleDate = @p1",
                     ("@p0", shiftName.Trim()), ("@p1", ParseDate(workDateStr).ToString(DateFormat)));
@@ -275,12 +318,49 @@ namespace PayrollManagement.Shifts
 
             using var conn = DbHelper.GetConnection();
             using var tx = conn.BeginTransaction();
-            foreach (var r in rows)
+            try
             {
-                using var cmd = new Microsoft.Data.SqlClient.SqlCommand(@"
-                    MERGE ShiftRotationSchedule AS target
-                    USING (VALUES (@p0,@p1,@p2,@p3,@p4,@p5))
-                          AS source (ScheduleDate, ShiftName, DutyType, InDateTime, OutDateTime, IsOvertime)
+                using (var cmdTemp = new Microsoft.Data.SqlClient.SqlCommand(@"
+                    CREATE TABLE #TempRotation (
+                        ScheduleDate NVARCHAR(20) NOT NULL,
+                        ShiftName NVARCHAR(50) NOT NULL,
+                        DutyType NVARCHAR(20) NOT NULL,
+                        InDateTime NVARCHAR(30) NOT NULL,
+                        OutDateTime NVARCHAR(30) NOT NULL,
+                        IsOvertime INT NOT NULL
+                    );", conn, tx))
+                {
+                    cmdTemp.ExecuteNonQuery();
+                }
+
+                var dt = new System.Data.DataTable();
+                dt.Columns.Add("ScheduleDate", typeof(string));
+                dt.Columns.Add("ShiftName", typeof(string));
+                dt.Columns.Add("DutyType", typeof(string));
+                dt.Columns.Add("InDateTime", typeof(string));
+                dt.Columns.Add("OutDateTime", typeof(string));
+                dt.Columns.Add("IsOvertime", typeof(int));
+
+                foreach (var r in rows)
+                {
+                    dt.Rows.Add(r.date, r.name, r.duty, r.inDt, r.outDt, r.ot);
+                }
+
+                using (var bulk = new Microsoft.Data.SqlClient.SqlBulkCopy(conn, Microsoft.Data.SqlClient.SqlBulkCopyOptions.Default, tx))
+                {
+                    bulk.DestinationTableName = "#TempRotation";
+                    bulk.ColumnMappings.Add("ScheduleDate", "ScheduleDate");
+                    bulk.ColumnMappings.Add("ShiftName", "ShiftName");
+                    bulk.ColumnMappings.Add("DutyType", "DutyType");
+                    bulk.ColumnMappings.Add("InDateTime", "InDateTime");
+                    bulk.ColumnMappings.Add("OutDateTime", "OutDateTime");
+                    bulk.ColumnMappings.Add("IsOvertime", "IsOvertime");
+                    bulk.WriteToServer(dt);
+                }
+
+                using (var cmdMerge = new Microsoft.Data.SqlClient.SqlCommand(@"
+                    MERGE dbo.ShiftRotationSchedule AS target
+                    USING #TempRotation AS source
                     ON target.ScheduleDate = source.ScheduleDate
                        AND target.ShiftName = source.ShiftName
                     WHEN MATCHED THEN
@@ -289,44 +369,45 @@ namespace PayrollManagement.Shifts
                     WHEN NOT MATCHED THEN
                         INSERT (ScheduleDate, ShiftName, DutyType, InDateTime, OutDateTime, IsOvertime)
                         VALUES (source.ScheduleDate, source.ShiftName, source.DutyType,
-                                source.InDateTime, source.OutDateTime, source.IsOvertime);", conn, tx);
-                cmd.Parameters.AddWithValue("@p0", r.date);
-                cmd.Parameters.AddWithValue("@p1", r.name);
-                cmd.Parameters.AddWithValue("@p2", r.duty);
-                cmd.Parameters.AddWithValue("@p3", r.inDt);
-                cmd.Parameters.AddWithValue("@p4", r.outDt);
-                cmd.Parameters.AddWithValue("@p5", r.ot);
-                cmd.ExecuteNonQuery();
-            }
+                                source.InDateTime, source.OutDateTime, source.IsOvertime);", conn, tx))
+                {
+                    cmdMerge.ExecuteNonQuery();
+                }
 
-            foreach (var (name, _, _) in shiftsToGenerate)
+                foreach (var (name, _, _) in shiftsToGenerate)
+                {
+                    var firstSchedule = rows.FirstOrDefault(x => x.name == NormalizeOrOriginal(name));
+                    if (firstSchedule.name is null) continue;
+                    var inTimeOnly = firstSchedule.inDt.Length >= 8 ? firstSchedule.inDt[^8..] : firstSchedule.inDt;
+                    var outTimeOnly = firstSchedule.outDt.Length >= 8 ? firstSchedule.outDt[^8..] : firstSchedule.outDt;
+                    var notes = firstSchedule.ot == 1 ? "Friday night OT" : "";
+                    using var cmd = new Microsoft.Data.SqlClient.SqlCommand(@"
+                        MERGE dbo.ShiftSchedule AS target
+                        USING (VALUES (@p0,@p1,@p2,@p3,@p4))
+                              AS source (ShiftName, DutyType, InTime, OutTime, Notes)
+                        ON target.ShiftName = source.ShiftName
+                        WHEN MATCHED THEN
+                            UPDATE SET DutyType=source.DutyType, InTime=source.InTime,
+                                       OutTime=source.OutTime, Notes=source.Notes
+                        WHEN NOT MATCHED THEN
+                            INSERT (ShiftName, DutyType, InTime, OutTime, Notes)
+                            VALUES (source.ShiftName, source.DutyType, source.InTime,
+                                    source.OutTime, source.Notes);", conn, tx);
+                    cmd.Parameters.AddWithValue("@p0", name);
+                    cmd.Parameters.AddWithValue("@p1", firstSchedule.duty);
+                    cmd.Parameters.AddWithValue("@p2", inTimeOnly);
+                    cmd.Parameters.AddWithValue("@p3", outTimeOnly);
+                    cmd.Parameters.AddWithValue("@p4", notes);
+                    cmd.ExecuteNonQuery();
+                }
+
+                tx.Commit();
+            }
+            catch
             {
-                var last = rows.LastOrDefault(x => x.name == NormalizeOrOriginal(name));
-                if (last.name is null) continue;
-                var inTimeOnly = last.inDt[^8..];
-                var outTimeOnly = last.outDt[^8..];
-                var notes = last.ot == 1 ? "Friday night OT" : "";
-                using var cmd = new Microsoft.Data.SqlClient.SqlCommand(@"
-                    MERGE ShiftSchedule AS target
-                    USING (VALUES (@p0,@p1,@p2,@p3,@p4))
-                          AS source (ShiftName, DutyType, InTime, OutTime, Notes)
-                    ON target.ShiftName = source.ShiftName
-                    WHEN MATCHED THEN
-                        UPDATE SET DutyType=source.DutyType, InTime=source.InTime,
-                                   OutTime=source.OutTime, Notes=source.Notes
-                    WHEN NOT MATCHED THEN
-                        INSERT (ShiftName, DutyType, InTime, OutTime, Notes)
-                        VALUES (source.ShiftName, source.DutyType, source.InTime,
-                                source.OutTime, source.Notes);", conn, tx);
-                cmd.Parameters.AddWithValue("@p0", name);
-                cmd.Parameters.AddWithValue("@p1", last.duty);
-                cmd.Parameters.AddWithValue("@p2", inTimeOnly);
-                cmd.Parameters.AddWithValue("@p3", outTimeOnly);
-                cmd.Parameters.AddWithValue("@p4", notes);
-                cmd.ExecuteNonQuery();
+                tx.Rollback();
+                throw;
             }
-
-            tx.Commit();
 
             static string NormalizeOrOriginal(string n)
             {

@@ -10,26 +10,69 @@ namespace PayrollManagement.AdminTools
 
     public static class ShiftCycleService
     {
-        public static List<string> AllShiftsInEmployeeInfo() =>
-            DbHelper.FetchRows(@"
-                SELECT DISTINCT Shift FROM EmployeeInfo
-                WHERE Shift IS NOT NULL AND TRIM(Shift) <> '' ORDER BY Shift")
-            .Select(r => r[0]!.ToString()!.Trim()).ToList();
+        public static void EnsureTable()
+        {
+            try
+            {
+                DbHelper.ExecuteNonQuery(@"
+                    IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA='dbo' AND TABLE_NAME='ShiftCycleConfig')
+                    CREATE TABLE dbo.ShiftCycleConfig (
+                        ShiftName NVARCHAR(50) PRIMARY KEY,
+                        DutyType NVARCHAR(20) NOT NULL,
+                        StartDate NVARCHAR(20) NOT NULL
+                    );
+                    IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA='dbo' AND TABLE_NAME='ShiftRotationSchedule')
+                    CREATE TABLE dbo.ShiftRotationSchedule (
+                        RotationID INT IDENTITY(1,1) PRIMARY KEY,
+                        ScheduleDate NVARCHAR(20) NOT NULL,
+                        ShiftName NVARCHAR(50) NOT NULL,
+                        DutyType NVARCHAR(20) NOT NULL,
+                        InDateTime NVARCHAR(30) NOT NULL,
+                        OutDateTime NVARCHAR(30) NOT NULL,
+                        IsOvertime INT DEFAULT 0
+                    );");
+            }
+            catch { }
+        }
 
-        public static Dictionary<string, ShiftLogic.CycleConfig> ExistingConfigs() =>
-            ShiftLogic.GetCycleConfigs();
+        public static List<string> AllShiftsInEmployeeInfo()
+        {
+            EnsureTable();
+            try
+            {
+                return DbHelper.FetchRows(@"
+                    SELECT DISTINCT Shift FROM dbo.EmployeeInfo
+                    WHERE Shift IS NOT NULL AND LTRIM(RTRIM(Shift)) <> '' ORDER BY Shift")
+                .Select(r => r[0]!.ToString()!.Trim()).ToList();
+            }
+            catch { return new List<string>(); }
+        }
 
-        public static List<ShiftRotationRow> RecentRotationRows(int top = 500) =>
-            DbHelper.FetchRows($@"
-                SELECT TOP {top} ScheduleDate, ShiftName, DutyType, InDateTime, OutDateTime, IsOvertime
-                FROM ShiftRotationSchedule ORDER BY ScheduleDate DESC, ShiftName")
-            .Select(r => new ShiftRotationRow(r[0]?.ToString() ?? "", r[1]?.ToString() ?? "",
-                r[2]?.ToString() ?? "", r[3]?.ToString() ?? "", r[4]?.ToString() ?? "",
-                Convert.ToInt32(r[5]) == 1)).ToList();
+        public static Dictionary<string, ShiftLogic.CycleConfig> ExistingConfigs()
+        {
+            EnsureTable();
+            return ShiftLogic.GetCycleConfigs();
+        }
+
+        public static List<ShiftRotationRow> RecentRotationRows(int top = 500)
+        {
+            EnsureTable();
+            try
+            {
+                return DbHelper.FetchRows($@"
+                    SELECT TOP {top} ScheduleDate, ShiftName, DutyType, InDateTime, OutDateTime, IsOvertime
+                    FROM dbo.ShiftRotationSchedule ORDER BY ScheduleDate DESC, ShiftName")
+                .Select(r => new ShiftRotationRow(r[0]?.ToString() ?? "", r[1]?.ToString() ?? "",
+                    r[2]?.ToString() ?? "", r[3]?.ToString() ?? "", r[4]?.ToString() ?? "",
+                    Convert.ToInt32(r[5]) == 1)).ToList();
+            }
+            catch { return new List<ShiftRotationRow>(); }
+        }
 
         public static (bool ok, string? error, int count) GenerateCycle(
             string startDate, List<ShiftCycleSelection> selectedShifts)
         {
+            EnsureTable();
             if (selectedShifts.Count == 0)
                 return (false, "Please select at least one shift for the cycle.", 0);
 
@@ -50,7 +93,8 @@ namespace PayrollManagement.AdminTools
 
         public static void DeleteAll()
         {
-            try { DbHelper.ExecuteNonQuery("DELETE FROM ShiftRotationSchedule"); } catch { }
+            EnsureTable();
+            try { DbHelper.ExecuteNonQuery("DELETE FROM dbo.ShiftRotationSchedule"); } catch { }
             try { ShiftLogic.ClearCycleConfigs(); } catch { }
         }
     }

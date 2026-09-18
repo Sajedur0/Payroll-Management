@@ -96,10 +96,10 @@ namespace PayrollManagement.ViewModels
         private bool _useRange = true;
         public bool UseRange { get => _useRange; set { _useRange = value; OnPropertyChanged(); } }
 
-        public ObservableCollection<string> SectionOptions { get; set; } = new();
-        public ObservableCollection<string> DesignationOptions { get; set; } = new();
-        public ObservableCollection<string> CategoryOptions { get; set; } = new();
-        public ObservableCollection<string> ShiftOptions { get; set; } = new();
+        public ObservableCollection<string> SectionOptions { get; set; } = new() { "All" };
+        public ObservableCollection<string> DesignationOptions { get; set; } = new() { "All" };
+        public ObservableCollection<string> CategoryOptions { get; set; } = new() { "All" };
+        public ObservableCollection<string> ShiftOptions { get; set; } = new() { "All" };
 
         private ReportResult? _result;
         public ReportResult? Result { get => _result; set { _result = value; OnPropertyChanged(); OnPropertyChanged(nameof(ResultTable)); OnPropertyChanged(nameof(HasResult)); } }
@@ -220,7 +220,7 @@ namespace PayrollManagement.ViewModels
                 if (!string.IsNullOrEmpty(t) && !fresh.Contains(t)) fresh.Add(t);
             }
             // Avoid Clear() when nothing changed: Clear collapses the open popup
-            // and pushes SelectedItem=null into the setter (dropdown "কাজ করে না").
+            // and pushes SelectedItem=null into the setter.
             bool same = options.Count == fresh.Count;
             if (same)
             {
@@ -262,9 +262,20 @@ namespace PayrollManagement.ViewModels
             StatusMessage = $"Generating {type} report...";
             try
             {
+                if (UseRange && FromDate.HasValue && ToDate.HasValue && FromDate.Value > ToDate.Value)
+                {
+                    var temp = FromDate;
+                    _fromDate = ToDate;
+                    _toDate = temp;
+                    OnPropertyChanged(nameof(FromDate));
+                    OnPropertyChanged(nameof(ToDate));
+                }
+
                 // Sync filter dates based on UseRange
                 if (type == "Monthly")
                 {
+                    if (string.IsNullOrWhiteSpace(Month))
+                        Month = MonthPicker.ToString("yyyy-MM");
                     Filters.Month = Month;
                 }
                 else
@@ -324,7 +335,14 @@ namespace PayrollManagement.ViewModels
                     default: result = new ReportResult(); break;
                 }
                 Result = result;
-                StatusMessage = $"{ReportTitle}: {result.Rows.Count} rows. {ReportNamingHelper.FilterSummary(Filters, type == "Monthly" ? "monthly" : null)}";
+                if (result.Rows.Count == 0)
+                {
+                    StatusMessage = $"No records found for the selected criteria. ({ReportTitle})";
+                }
+                else
+                {
+                    StatusMessage = $"{ReportTitle}: {result.Rows.Count} rows. {ReportNamingHelper.FilterSummary(Filters, type == "Monthly" ? "monthly" : null)}";
+                }
             }
             catch (Exception ex)
             {
@@ -343,13 +361,14 @@ namespace PayrollManagement.ViewModels
             }
             if (!string.IsNullOrEmpty(Filters.FromDate) && string.IsNullOrEmpty(Filters.ToDate))
                 Filters.ToDate = Filters.FromDate;
+            if (string.IsNullOrEmpty(Filters.FromDate) && !string.IsNullOrEmpty(Filters.ToDate))
+                Filters.FromDate = Filters.ToDate;
         }
 
         private static Window? OwnerWindow => Application.Current?.MainWindow;
 
         private void Export()
         {
-            // Mirrors Python export_current_report_pdf (reports_page.py:1403-1428).
             if (Result == null || Result.Rows.Count == 0)
             {
                 MessageBox.Show("No report data to export", "Info", MessageBoxButton.OK, MessageBoxImage.Information);
@@ -388,7 +407,6 @@ namespace PayrollManagement.ViewModels
 
         private void Print()
         {
-            // Mirrors Python print_current_report (reports_page.py:1786-1803).
             if (Result == null || Result.Rows.Count == 0)
             {
                 MessageBox.Show("No report data to print", "Info", MessageBoxButton.OK, MessageBoxImage.Information);
@@ -402,8 +420,6 @@ namespace PayrollManagement.ViewModels
             {
                 var filterSummary = ReportNamingHelper.FilterSummary(Filters, ReportTitle.Contains("Monthly") ? "monthly" : null);
                 ReportPdfBuilder.Build(tmp, ReportTitle, filterSummary, Result, options.ToPdfOptions());
-                // Open in the default PDF viewer as the print preview; the user prints
-                // from there applying options.PaperSize + options.Orientation to page setup.
                 _ = System.Diagnostics.Process.Start(
                     new System.Diagnostics.ProcessStartInfo(tmp) { UseShellExecute = true });
             }

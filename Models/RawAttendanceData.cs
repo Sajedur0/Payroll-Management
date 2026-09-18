@@ -1,3 +1,5 @@
+using System.Globalization;
+
 namespace PayrollManagement.Models
 {
     public class RawAttendanceData
@@ -22,14 +24,39 @@ namespace PayrollManagement.Models
         {
             get
             {
+                // First try full InDateTime and OutDateTime for exact timestamp difference
+                if (!string.IsNullOrWhiteSpace(InDateTime) && !string.IsNullOrWhiteSpace(OutDateTime))
+                {
+                    if (DateTime.TryParse(InDateTime, CultureInfo.InvariantCulture, DateTimeStyles.None, out var inDt) &&
+                        DateTime.TryParse(OutDateTime, CultureInfo.InvariantCulture, DateTimeStyles.None, out var outDt))
+                    {
+                        if (outDt > inDt)
+                        {
+                            var diff = outDt - inDt;
+                            return $"{(int)diff.TotalHours}h {diff.Minutes:D2}m";
+                        }
+                    }
+                }
+
+                // Fall back to InTime and OutTime
                 if (!string.IsNullOrWhiteSpace(InTime) && !string.IsNullOrWhiteSpace(OutTime))
                 {
                     if (TimeSpan.TryParse(InTime, out var inT) && TimeSpan.TryParse(OutTime, out var outT))
                     {
+                        TimeSpan diff;
                         if (outT >= inT)
                         {
-                            var diff = outT - inT;
-                            return $"{diff.Hours}h {diff.Minutes:D2}m";
+                            diff = outT - inT;
+                        }
+                        else
+                        {
+                            // Shift crossed midnight (e.g. In 20:00, Out 08:00)
+                            diff = (outT + TimeSpan.FromDays(1)) - inT;
+                        }
+
+                        if (diff.TotalMinutes > 0)
+                        {
+                            return $"{(int)diff.TotalHours}h {diff.Minutes:D2}m";
                         }
                     }
                 }

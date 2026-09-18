@@ -49,10 +49,30 @@ namespace PayrollManagement.ViewModels
         public string? SearchText { get => _searchText; set { _searchText = value; OnPropertyChanged(); } }
 
         private DateTime _fromDate = DateTime.Today;
-        public DateTime FromDate { get => _fromDate; set { _fromDate = value; OnPropertyChanged(); OnPropertyChanged(nameof(DateRangeDisplay)); OnPropertyChanged(nameof(DailyTitleDisplay)); } }
+        public DateTime FromDate
+        {
+            get => _fromDate;
+            set
+            {
+                _fromDate = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(DateRangeDisplay));
+                OnPropertyChanged(nameof(DailyTitleDisplay));
+            }
+        }
 
         private DateTime _toDate = DateTime.Today;
-        public DateTime ToDate { get => _toDate; set { _toDate = value; OnPropertyChanged(); OnPropertyChanged(nameof(DateRangeDisplay)); OnPropertyChanged(nameof(DailyTitleDisplay)); } }
+        public DateTime ToDate
+        {
+            get => _toDate;
+            set
+            {
+                _toDate = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(DateRangeDisplay));
+                OnPropertyChanged(nameof(DailyTitleDisplay));
+            }
+        }
 
         public string DateRangeDisplay => $"{FromDate:dd/MM/yyyy} to {ToDate:dd/MM/yyyy}";
         public string DailyTitleDisplay => FromDate.Date == ToDate.Date ? $"Daily Log — {FromDate:dd/MM/yyyy}" : $"Log — {FromDate:dd/MM/yyyy} to {ToDate:dd/MM/yyyy}";
@@ -73,17 +93,30 @@ namespace PayrollManagement.ViewModels
         /// <summary>
         /// Loads attendance data and displays in DataGrid
         /// </summary>
-        public async Task LoadAsync()
+        public async Task LoadAsync(bool preserveSuccessMessage = false)
         {
             if (IsLoading) return;
             IsLoading = true;
             ErrorMessage = null;
-            SuccessMessage = null;
+            if (!preserveSuccessMessage)
+                SuccessMessage = null;
+
+            if (FromDate > ToDate)
+            {
+                var temp = FromDate;
+                _fromDate = ToDate;
+                _toDate = temp;
+                OnPropertyChanged(nameof(FromDate));
+                OnPropertyChanged(nameof(ToDate));
+                OnPropertyChanged(nameof(DateRangeDisplay));
+                OnPropertyChanged(nameof(DailyTitleDisplay));
+            }
+
             try
             {
                 var list = await _repo.GetRawDataAsync(FromDate, ToDate, string.IsNullOrWhiteSpace(SearchText) ? null : SearchText);
                 RawRecords = new ObservableCollection<RawAttendanceData>(list);
-                if (list.Count == 0)
+                if (list.Count == 0 && string.IsNullOrEmpty(SuccessMessage))
                     ErrorMessage = "No records found in the selected date range.";
             }
             catch (Exception ex)
@@ -107,6 +140,17 @@ namespace PayrollManagement.ViewModels
             ProgressPercentageText = "0%";
             ErrorMessage = null;
             SuccessMessage = null;
+
+            if (FromDate > ToDate)
+            {
+                var temp = FromDate;
+                _fromDate = ToDate;
+                _toDate = temp;
+                OnPropertyChanged(nameof(FromDate));
+                OnPropertyChanged(nameof(ToDate));
+                OnPropertyChanged(nameof(DateRangeDisplay));
+                OnPropertyChanged(nameof(DailyTitleDisplay));
+            }
 
             try
             {
@@ -133,8 +177,8 @@ namespace PayrollManagement.ViewModels
                     ProgressText = $"✓ Completed: {count} of {count} records loaded (0 remaining)";
                     SuccessMessage = $"✓ Success! {count} attendance records loaded ({FromDate:yyyy-MM-dd} ~ {ToDate:yyyy-MM-dd})";
                     
-                    // Refresh DataGrid
-                    await LoadAsync();
+                    // Refresh DataGrid preserving the success banner
+                    await LoadAsync(preserveSuccessMessage: true);
                 }
                 else
                 {
@@ -155,4 +199,3 @@ namespace PayrollManagement.ViewModels
         protected void OnPropertyChanged([CallerMemberName] string? name = null) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
     }
 }
-

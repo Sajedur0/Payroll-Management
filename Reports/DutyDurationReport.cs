@@ -13,22 +13,37 @@ namespace PayrollManagement.Reports
 
             string startDate = !string.IsNullOrEmpty(filters.FromDate) ? filters.FromDate : filters.Date;
             string endDate = !string.IsNullOrEmpty(filters.ToDate) ? filters.ToDate : filters.Date;
+
+            if (string.CompareOrdinal(startDate, endDate) > 0)
+            {
+                var temp = startDate;
+                startDate = endDate;
+                endDate = temp;
+            }
+
             var holidayMap = CalendarHelper.CompanyHolidayMap(startDate, endDate);
             var exitDates = EmployeeExitHelper.GetEmployeeExitDateMap();
 
-            var empQuery = $@"SELECT e.EmpID, e.Name, e.Section, e.Designation
-                               FROM EmployeeInfo e WHERE {string.Join(" AND ", employeeWhere)}
+            var empQuery = $@"SELECT e.EmpID, e.Name, e.Section, e.Designation, e.Shift
+                               FROM dbo.EmployeeInfo e WHERE {string.Join(" AND ", employeeWhere)}
                                ORDER BY e.EmpID";
             List<object[]> employees;
             try { employees = DbHelper.FetchRows(empQuery, employeeParams.ToArray()); }
             catch { employees = new List<object[]>(); }
+
             var empShiftCache = new Dictionary<int, string>();
+            foreach (var emp in employees)
+            {
+                if (emp[0] == null) continue;
+                int empId = Convert.ToInt32(emp[0]);
+                empShiftCache[empId] = emp.Length > 4 && emp[4] != null ? (emp[4].ToString() ?? "").Trim() : "";
+            }
 
             var extendedEnd = ShiftLogic.ParseDate(endDate).AddDays(1).ToString("yyyy-MM-dd");
             var attendanceQuery = $@"
                 SELECT e.EmpID, e.Name, e.Section, e.Designation,
                        r.Date, r.InTime, r.OutTime
-                FROM RawData r JOIN EmployeeInfo e ON e.EmpID = r.EmpID
+                FROM dbo.RawData r JOIN dbo.EmployeeInfo e ON e.EmpID = r.EmpID
                 WHERE {string.Join(" AND ", employeeWhere)}
                   AND {EmployeeExitHelper.EmployeeActiveOnDateSql("e", "r.Date")}
                   AND r.Date BETWEEN @dStart AND @dEnd
@@ -43,13 +58,17 @@ namespace PayrollManagement.Reports
 
             var rawTimesMap = new Dictionary<(string, string), (string?, string?)>();
             foreach (var r in allRows)
-                rawTimesMap[(r[0]!.ToString()!, r[4]!.ToString()!)] = (r[5] as string, r[6] as string);
+            {
+                if (r[0] != null && r[4] != null)
+                    rawTimesMap[(r[0].ToString()!, r[4].ToString()!)] = (r[5] as string, r[6] as string);
+            }
 
             var attendanceMap = new Dictionary<(string, string), object?[]>();
             foreach (var row in allRows)
             {
+                if (row[0] == null || row[4] == null) continue;
                 var empId = row[0]!; var name = row[1]; var section = row[2]; var designation = row[3];
-                var dateValue = row[4]!.ToString()!;
+                var dateValue = row[4].ToString()!;
                 var inTimeRaw = row[5] as string; var outTimeRaw = row[6] as string;
                 if (string.CompareOrdinal(dateValue, endDate) > 0) continue;
 
@@ -108,6 +127,7 @@ namespace PayrollManagement.Reports
                 var dayName = ShiftLogic.ParseDate(dateValue).DayOfWeek.ToString();
                 foreach (var emp in employees)
                 {
+                    if (emp[0] == null) continue;
                     var empId = Convert.ToInt32(emp[0]);
                     var name = emp[1]; var section = emp[2]; var designation = emp[3];
                     if (!EmployeeExitHelper.IsEmployeeActiveOn(exitDates, empId, dateValue)) continue;
@@ -144,7 +164,7 @@ namespace PayrollManagement.Reports
                 }
             }
 
-            rows = rows.OrderBy(r => r[4]!.ToString())
+            rows = rows.OrderBy(r => r[4]?.ToString() ?? "")
                        .ThenBy(r => double.TryParse(r[0]?.ToString(), out var d) ? d : double.PositiveInfinity)
                        .ToList();
             return new ReportResult { Columns = columns, Rows = rows };
