@@ -20,9 +20,14 @@ namespace PayrollManagement.Data
             // 1. Total active employees from dbo.EmployeeInfo
             try
             {
+                await EnsureEmployeeInfoTableAsync(conn);
                 using var cmdEmp = new SqlCommand("SELECT COUNT(*) FROM dbo.EmployeeInfo WHERE Status = 'Active' OR Status IS NULL", conn);
                 var empCount = await cmdEmp.ExecuteScalarAsync();
                 summary.TotalEmployees = empCount != null && empCount != DBNull.Value ? Convert.ToInt32(empCount) : 0;
+
+                using var cmdLeave = new SqlCommand("SELECT COUNT(*) FROM dbo.EmployeeInfo WHERE Status IN ('Leave', 'On Leave', 'OnLeave')", conn);
+                var leaveCount = await cmdLeave.ExecuteScalarAsync();
+                summary.OnLeave = leaveCount != null && leaveCount != DBNull.Value ? Convert.ToInt32(leaveCount) : 0;
             }
             catch
             {
@@ -37,11 +42,12 @@ namespace PayrollManagement.Data
             // 2. Present / Absent from dbo.RawData
             try
             {
+                await EnsureRawDataTableAsync(conn);
                 var todayStr = DateTime.Today.ToString("yyyy-MM-dd");
                 string? targetDate = null;
 
                 // Check if today has data
-                using (var cmdCheckToday = new SqlCommand("SELECT COUNT(*) FROM dbo.RawData WHERE [Date] = @d", conn))
+                using (var cmdCheckToday = new SqlCommand("SELECT COUNT(DISTINCT EmpID) FROM dbo.RawData WHERE [Date] = @d", conn))
                 {
                     cmdCheckToday.Parameters.AddWithValue("@d", todayStr);
                     int todayCount = Convert.ToInt32(await cmdCheckToday.ExecuteScalarAsync());
@@ -60,7 +66,7 @@ namespace PayrollManagement.Data
                     if (maxDateObj != null && maxDateObj != DBNull.Value)
                     {
                         targetDate = maxDateObj.ToString();
-                        using var cmdCount = new SqlCommand("SELECT COUNT(*) FROM dbo.RawData WHERE [Date] = @d", conn);
+                        using var cmdCount = new SqlCommand("SELECT COUNT(DISTINCT EmpID) FROM dbo.RawData WHERE [Date] = @d", conn);
                         cmdCount.Parameters.AddWithValue("@d", targetDate);
                         summary.PresentToday = Convert.ToInt32(await cmdCount.ExecuteScalarAsync());
                     }
@@ -69,7 +75,7 @@ namespace PayrollManagement.Data
                 // Calculate Absent
                 if (summary.TotalEmployees > 0)
                 {
-                    summary.AbsentToday = Math.Max(0, summary.TotalEmployees - summary.PresentToday);
+                    summary.AbsentToday = Math.Max(0, summary.TotalEmployees - summary.PresentToday - summary.OnLeave);
                 }
             }
             catch { }
@@ -85,9 +91,10 @@ namespace PayrollManagement.Data
 
             try
             {
+                await EnsureRawDataTableAsync(conn);
                 // Query the 7 most recent dates from dbo.RawData
                 var sql = @"
-                    SELECT TOP 7 [Date], COUNT(*) AS PresentCount
+                    SELECT TOP 7 [Date], COUNT(DISTINCT EmpID) AS PresentCount
                     FROM dbo.RawData
                     WHERE [Date] IS NOT NULL AND [Date] <> ''
                     GROUP BY [Date]
@@ -97,9 +104,9 @@ namespace PayrollManagement.Data
                 using var reader = await cmd.ExecuteReaderAsync();
                 while (await reader.ReadAsync())
                 {
-                    var dateStr = reader.GetString(0);
-                    var count = reader.GetInt32(1);
-                    if (DateTime.TryParse(dateStr, out var parsedDate))
+                    var dateStr = reader.IsDBNull(0) ? "" : reader.GetValue(0).ToString();
+                    var count = reader.IsDBNull(1) ? 0 : Convert.ToInt32(reader.GetValue(1));
+                    if (!string.IsNullOrEmpty(dateStr) && DateTime.TryParse(dateStr, out var parsedDate))
                     {
                         list.Add(new WeeklyAttendancePoint
                         {
@@ -131,6 +138,13 @@ namespace PayrollManagement.Data
 
         public async Task<List<AttendanceRecord>> GetAttendanceLogAsync(DateTime? fromDate = null, DateTime? toDate = null, string? search = null)
         {
+            if (fromDate.HasValue && toDate.HasValue && fromDate.Value > toDate.Value)
+            {
+                var temp = fromDate;
+                fromDate = toDate;
+                toDate = temp;
+            }
+
             var list = new List<AttendanceRecord>();
             using var conn = await DbConfig.GetOpenConnectionAsync();
             if (conn == null) throw new Exception("DB Connection failed");
@@ -153,55 +167,59 @@ namespace PayrollManagement.Data
             }
             catch { /* fallback to direct query */ }
 
-            var sql = @"
-                SELECT a.AttendanceId, e.EmployeeId, e.EmployeeCode, e.FullName, e.Department,
-                       a.AttendanceDate, a.CheckIn, a.CheckOut, a.Status, a.WorkHours
-                FROM dbo.Attendance a
-                JOIN dbo.Employees e ON a.EmployeeId = e.EmployeeId
-                WHERE (@from IS NULL OR a.AttendanceDate >= @from)
-                  AND (@to IS NULL OR a.AttendanceDate <= @to)
-                  AND (@search IS NULL OR e.FullName LIKE '%' + @search + '%' OR e.EmployeeCode LIKE '%' + @search + '%')
-                ORDER BY a.AttendanceDate DESC";
-
-            using var cmd2 = new SqlCommand(sql, conn);
-            cmd2.Parameters.AddWithValue("@from", (object?)fromDate ?? DBNull.Value);
-            cmd2.Parameters.AddWithValue("@to", (object?)toDate ?? DBNull.Value);
-            cmd2.Parameters.AddWithValue("@search", (object?)search ?? DBNull.Value);
-
-            using var reader2 = await cmd2.ExecuteReaderAsync();
-            while (await reader2.ReadAsync())
+            try
             {
-                list.Add(new AttendanceRecord
+                var sql = @"
+                    SELECT a.AttendanceId, e.EmployeeId, e.EmployeeCode, e.FullName, e.Department,
+                           a.AttendanceDate, a.CheckIn, a.CheckOut, a.Status, a.WorkHours
+                    FROM dbo.Attendance a
+                    JOIN dbo.Employees e ON a.EmployeeId = e.EmployeeId
+                    WHERE (@from IS NULL OR a.AttendanceDate >= @from)
+                      AND (@to IS NULL OR a.AttendanceDate <= @to)
+                      AND (@search IS NULL OR e.FullName LIKE '%' + @search + '%' OR e.EmployeeCode LIKE '%' + @search + '%')
+                    ORDER BY a.AttendanceDate DESC";
+
+                using var cmd2 = new SqlCommand(sql, conn);
+                cmd2.Parameters.AddWithValue("@from", (object?)fromDate ?? DBNull.Value);
+                cmd2.Parameters.AddWithValue("@to", (object?)toDate ?? DBNull.Value);
+                cmd2.Parameters.AddWithValue("@search", (object?)search ?? DBNull.Value);
+
+                using var reader2 = await cmd2.ExecuteReaderAsync();
+                while (await reader2.ReadAsync())
                 {
-                    AttendanceId = reader2.GetInt32(0),
-                    EmployeeId = reader2.GetInt32(1),
-                    EmployeeCode = reader2.GetString(2),
-                    FullName = reader2.GetString(3),
-                    Department = reader2.GetString(4),
-                    AttendanceDate = reader2.GetDateTime(5),
-                    CheckIn = reader2.IsDBNull(6) ? null : reader2.GetTimeSpan(6),
-                    CheckOut = reader2.IsDBNull(7) ? null : reader2.GetTimeSpan(7),
-                    Status = reader2.GetString(8),
-                    WorkHours = reader2.IsDBNull(9) ? null : reader2.GetDecimal(9)
-                });
+                    list.Add(new AttendanceRecord
+                    {
+                        AttendanceId = reader2.IsDBNull(0) ? 0 : reader2.GetInt32(0),
+                        EmployeeId = reader2.IsDBNull(1) ? 0 : reader2.GetInt32(1),
+                        EmployeeCode = reader2.IsDBNull(2) ? "" : reader2.GetString(2),
+                        FullName = reader2.IsDBNull(3) ? "" : reader2.GetString(3),
+                        Department = reader2.IsDBNull(4) ? "" : reader2.GetString(4),
+                        AttendanceDate = reader2.IsDBNull(5) ? DateTime.MinValue : reader2.GetDateTime(5),
+                        CheckIn = reader2.IsDBNull(6) ? null : (reader2.GetValue(6) is TimeSpan tsIn ? tsIn : TimeSpan.TryParse(reader2.GetValue(6)?.ToString(), out var pIn) ? pIn : null),
+                        CheckOut = reader2.IsDBNull(7) ? null : (reader2.GetValue(7) is TimeSpan tsOut ? tsOut : TimeSpan.TryParse(reader2.GetValue(7)?.ToString(), out var pOut) ? pOut : null),
+                        Status = reader2.IsDBNull(8) ? "" : reader2.GetString(8),
+                        WorkHours = reader2.IsDBNull(9) ? null : Convert.ToDecimal(reader2.GetValue(9))
+                    });
+                }
             }
+            catch { }
+
             return list;
         }
 
         private AttendanceRecord MapAttendanceLog(SqlDataReader r)
         {
-            // sp_GetAttendanceLog returns: AttendanceId, EmployeeCode, FullName, Department, AttendanceDate, CheckIn, CheckOut, Status, WorkHours
             return new AttendanceRecord
             {
-                AttendanceId = r.GetInt32(0),
-                EmployeeCode = r.GetString(1),
-                FullName = r.GetString(2),
-                Department = r.GetString(3),
-                AttendanceDate = r.GetDateTime(4),
-                CheckIn = r.IsDBNull(5) ? null : r.GetTimeSpan(5),
-                CheckOut = r.IsDBNull(6) ? null : r.GetTimeSpan(6),
-                Status = r.GetString(7),
-                WorkHours = r.IsDBNull(8) ? null : r.GetDecimal(8)
+                AttendanceId = r.IsDBNull(0) ? 0 : r.GetInt32(0),
+                EmployeeCode = r.IsDBNull(1) ? "" : r.GetString(1),
+                FullName = r.IsDBNull(2) ? "" : r.GetString(2),
+                Department = r.IsDBNull(3) ? "" : r.GetString(3),
+                AttendanceDate = r.IsDBNull(4) ? DateTime.MinValue : r.GetDateTime(4),
+                CheckIn = r.IsDBNull(5) ? null : (r.GetValue(5) is TimeSpan tsIn ? tsIn : TimeSpan.TryParse(r.GetValue(5)?.ToString(), out var pIn) ? pIn : null),
+                CheckOut = r.IsDBNull(6) ? null : (r.GetValue(6) is TimeSpan tsOut ? tsOut : TimeSpan.TryParse(r.GetValue(6)?.ToString(), out var pOut) ? pOut : null),
+                Status = r.IsDBNull(7) ? "" : r.GetString(7),
+                WorkHours = r.IsDBNull(8) ? null : Convert.ToDecimal(r.GetValue(8))
             };
         }
 
@@ -211,6 +229,8 @@ namespace PayrollManagement.Data
             var list = new List<Employee>();
             using var conn = await DbConfig.GetOpenConnectionAsync();
             if (conn == null) throw new Exception("Failed to connect to the server.");
+
+            await EnsureEmployeeInfoTableAsync(conn);
 
             var sql = @"
                 SELECT 
@@ -229,15 +249,15 @@ namespace PayrollManagement.Data
                 ORDER BY SL DESC";
 
             using var cmd = new SqlCommand(sql, conn);
-            cmd.Parameters.AddWithValue("@s", (object?)search ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@s", (object?)search?.Trim() ?? DBNull.Value);
             using var reader = await cmd.ExecuteReaderAsync();
             while (await reader.ReadAsync())
             {
                 list.Add(new Employee
                 {
-                    SL = reader.GetInt32(0),
+                    SL = Convert.ToInt32(reader.GetValue(0)),
                     Name = reader.IsDBNull(1) ? "" : reader.GetString(1),
-                    EmpID = reader.IsDBNull(2) ? null : reader.GetInt32(2),
+                    EmpID = reader.IsDBNull(2) ? null : Convert.ToInt32(reader.GetValue(2)),
                     Gender = reader.IsDBNull(3) ? null : reader.GetString(3),
                     Designation = reader.IsDBNull(4) ? null : reader.GetString(4),
                     Section = reader.IsDBNull(5) ? null : reader.GetString(5),
@@ -246,7 +266,7 @@ namespace PayrollManagement.Data
                     Category = reader.IsDBNull(8) ? null : reader.GetString(8),
                     Status = reader.IsDBNull(9) ? null : reader.GetString(9),
                     RocketAC = reader.IsDBNull(10) ? null : reader.GetString(10),
-                    GrossWages = reader.IsDBNull(11) ? null : reader.GetDouble(11),
+                    GrossWages = reader.IsDBNull(11) ? null : Convert.ToDouble(reader.GetValue(11)),
                     Religion = reader.IsDBNull(12) ? null : reader.GetString(12),
                     DOJ = reader.IsDBNull(13) ? null : reader.GetString(13),
                     FatherName = reader.IsDBNull(14) ? null : reader.GetString(14),
@@ -262,6 +282,8 @@ namespace PayrollManagement.Data
         {
             using var conn = await DbConfig.GetOpenConnectionAsync();
             if (conn == null) throw new Exception("Failed to connect to the server.");
+
+            await EnsureEmployeeInfoTableAsync(conn);
 
             var sql = @"
                 INSERT INTO dbo.EmployeeInfo (
@@ -303,6 +325,8 @@ namespace PayrollManagement.Data
         {
             using var conn = await DbConfig.GetOpenConnectionAsync();
             if (conn == null) throw new Exception("Failed to connect to the server.");
+
+            await EnsureEmployeeInfoTableAsync(conn);
 
             var sql = @"
                 UPDATE dbo.EmployeeInfo SET 
@@ -354,6 +378,8 @@ namespace PayrollManagement.Data
             using var conn = await DbConfig.GetOpenConnectionAsync();
             if (conn == null) throw new Exception("Failed to connect to the server.");
 
+            await EnsureEmployeeInfoTableAsync(conn);
+
             using var cmd = new SqlCommand("DELETE FROM dbo.EmployeeInfo WHERE SL = @SL", conn);
             cmd.Parameters.AddWithValue("@SL", sl);
             int rows = await cmd.ExecuteNonQueryAsync();
@@ -379,7 +405,15 @@ namespace PayrollManagement.Data
                 var colMap = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
                 foreach (var cell in headerRow.Cells())
                 {
-                    var headerText = cell.GetString().Trim().Replace(" ", "").Replace("_", "").Replace("-", "");
+                    string headerText = "";
+                    try
+                    {
+                        headerText = cell.GetFormattedString().Trim().Replace(" ", "").Replace("_", "").Replace("-", "");
+                    }
+                    catch
+                    {
+                        headerText = (cell.Value.ToString() ?? "").Trim().Replace(" ", "").Replace("_", "").Replace("-", "");
+                    }
                     if (!string.IsNullOrEmpty(headerText) && !colMap.ContainsKey(headerText))
                     {
                         colMap[headerText] = cell.Address.ColumnNumber;
@@ -394,9 +428,23 @@ namespace PayrollManagement.Data
                         if (colMap.TryGetValue(clean, out int colIdx))
                         {
                             var cell = row.Cell(colIdx);
+                            if (cell.IsEmpty()) return "";
+
                             if (cell.DataType == XLDataType.DateTime)
-                                return cell.GetDateTime().ToString("yyyy-MM-dd");
-                            return cell.GetString().Trim();
+                            {
+                                try { return cell.GetDateTime().ToString("yyyy-MM-dd"); }
+                                catch { }
+                            }
+
+                            try
+                            {
+                                return cell.GetFormattedString().Trim();
+                            }
+                            catch
+                            {
+                                try { return (cell.Value.ToString() ?? "").Trim(); }
+                                catch { return ""; }
+                            }
                         }
                     }
                     return "";
@@ -411,8 +459,16 @@ namespace PayrollManagement.Data
                     if (string.IsNullOrWhiteSpace(empIdStr) && string.IsNullOrWhiteSpace(name))
                         continue;
 
-                    if (!int.TryParse(empIdStr, out int empId))
-                        continue;
+                    int empId = 0;
+                    if (!int.TryParse(empIdStr.Trim(), out empId))
+                    {
+                        if (double.TryParse(empIdStr.Trim(), NumberStyles.Any, CultureInfo.InvariantCulture, out double empIdDbl))
+                            empId = (int)Math.Round(empIdDbl);
+                        else
+                            continue;
+                    }
+
+                    if (empId <= 0) continue;
 
                     var emp = new Employee
                     {
@@ -454,6 +510,8 @@ namespace PayrollManagement.Data
             using var conn = await DbConfig.GetOpenConnectionAsync();
             if (conn == null) throw new Exception("Failed to connect to the server.");
 
+            await EnsureEmployeeInfoTableAsync(conn);
+
             int inserted = 0;
             int updated = 0;
 
@@ -493,7 +551,14 @@ namespace PayrollManagement.Data
         /// </summary>
         public async Task<int> LoadAttendanceFromFaceIdDbAsync(DateTime? fromDate = null, DateTime? toDate = null, IProgress<AttendanceLoadProgress>? progress = null)
         {
-            progress?.Report(new AttendanceLoadProgress { Processed = 0, Total = 0, Message = "Connecting to data source..." });
+            if (fromDate.HasValue && toDate.HasValue && fromDate.Value > toDate.Value)
+            {
+                var temp = fromDate;
+                fromDate = toDate;
+                toDate = temp;
+            }
+
+            progress?.Report(new AttendanceLoadProgress { Processed = 0, Total = 0, Message = "Connecting to external data source..." });
 
             // Step 1: Read data from FACEIDDB
             using var faceConn = await DbConfig.GetFaceIdDbConnectionAsync();
@@ -532,9 +597,12 @@ namespace PayrollManagement.Data
                 using var reader = await cmd.ExecuteReaderAsync();
                 while (await reader.ReadAsync())
                 {
+                    string empCode = reader.IsDBNull(0) ? "" : reader.GetString(0).Trim();
+                    if (!int.TryParse(empCode, out _)) continue;
+
                     var record = new RawAttendanceData
                     {
-                        EmpID = reader.IsDBNull(0) ? "" : reader.GetString(0).Trim(),
+                        EmpID = empCode,
                         Date = reader.IsDBNull(1) ? "" : reader.GetString(1),
                         InTime = reader.IsDBNull(2) ? null : reader.GetString(2),
                         OutTime = reader.IsDBNull(3) ? null : reader.GetString(3),
@@ -555,14 +623,13 @@ namespace PayrollManagement.Data
                 return 0;
             }
 
-            progress?.Report(new AttendanceLoadProgress { Processed = 0, Total = total, Message = $"Found {total} records. Saving..." });
+            progress?.Report(new AttendanceLoadProgress { Processed = 0, Total = total, Message = $"Found {total} records. Saving to database..." });
 
             // Step 2: Save to AttendanceDB.dbo.RawData
             using var attConn = await DbConfig.GetOpenConnectionAsync();
             if (attConn == null)
                 throw new Exception("Failed to connect to the server.");
 
-            // Create RawData table and index if they do not exist
             await EnsureRawDataTableAsync(attConn);
 
             int batchSize = 250;
@@ -589,7 +656,6 @@ namespace PayrollManagement.Data
                     {
                         var batch = records.Skip(i).Take(batchSize).ToList();
 
-                        // Clear temp table
                         using (var cmdTruncate = new SqlCommand("TRUNCATE TABLE #TempRawData;", attConn, tx))
                         {
                             await cmdTruncate.ExecuteNonQueryAsync();
@@ -621,6 +687,12 @@ namespace PayrollManagement.Data
                         using (var bulk = new SqlBulkCopy(attConn, SqlBulkCopyOptions.Default, tx))
                         {
                             bulk.DestinationTableName = "#TempRawData";
+                            bulk.ColumnMappings.Add("EmpID", "EmpID");
+                            bulk.ColumnMappings.Add("Date", "Date");
+                            bulk.ColumnMappings.Add("InTime", "InTime");
+                            bulk.ColumnMappings.Add("OutTime", "OutTime");
+                            bulk.ColumnMappings.Add("InDateTime", "InDateTime");
+                            bulk.ColumnMappings.Add("OutDateTime", "OutDateTime");
                             await bulk.WriteToServerAsync(dt);
                         }
 
@@ -651,7 +723,7 @@ namespace PayrollManagement.Data
                             Message = $"Loaded {processed} of {total} records ({total - processed} remaining)..."
                         });
 
-                        await Task.Delay(15); // Smooth UI progress rendering
+                        await Task.Delay(10);
                     }
 
                     // Activity Log (if table exists)
@@ -666,7 +738,7 @@ namespace PayrollManagement.Data
                             $"{total} attendance records loaded ({fromDate?.ToString("yyyy-MM-dd") ?? "All"} ~ {toDate?.ToString("yyyy-MM-dd") ?? "All"})");
                         await logCmd.ExecuteNonQueryAsync();
                     }
-                    catch { /* Ignore */ }
+                    catch { }
 
                     tx.Commit();
                 }
@@ -678,6 +750,37 @@ namespace PayrollManagement.Data
             }
 
             return total;
+        }
+
+        private async Task EnsureEmployeeInfoTableAsync(SqlConnection conn)
+        {
+            var sql = @"
+                IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA='dbo' AND TABLE_NAME='EmployeeInfo')
+                BEGIN
+                    CREATE TABLE dbo.EmployeeInfo (
+                        SL INT IDENTITY(1,1) PRIMARY KEY,
+                        Name NVARCHAR(100) NOT NULL,
+                        EmpID INT UNIQUE,
+                        Gender NVARCHAR(20) NULL,
+                        Designation NVARCHAR(100) NULL,
+                        Section NVARCHAR(100) NULL,
+                        Department NVARCHAR(100) NULL,
+                        Shift NVARCHAR(20) NULL,
+                        Category NVARCHAR(50) NULL,
+                        Status NVARCHAR(50) DEFAULT 'Active',
+                        RocketAC NVARCHAR(50) NULL,
+                        GrossWages FLOAT NULL,
+                        Religion NVARCHAR(50) NULL,
+                        DOJ NVARCHAR(50) NULL,
+                        FatherName NVARCHAR(100) NULL,
+                        NID NVARCHAR(50) NULL,
+                        PermAddress NVARCHAR(500) NULL,
+                        PresAddress NVARCHAR(500) NULL
+                    );
+                END";
+
+            using var cmd = new SqlCommand(sql, conn);
+            await cmd.ExecuteNonQueryAsync();
         }
 
         /// <summary>
@@ -713,6 +816,13 @@ namespace PayrollManagement.Data
         /// </summary>
         public async Task<List<RawAttendanceData>> GetRawDataAsync(DateTime? fromDate = null, DateTime? toDate = null, string? search = null)
         {
+            if (fromDate.HasValue && toDate.HasValue && fromDate.Value > toDate.Value)
+            {
+                var temp = fromDate;
+                fromDate = toDate;
+                toDate = temp;
+            }
+
             var list = new List<RawAttendanceData>();
             using var conn = await DbConfig.GetOpenConnectionAsync();
             if (conn == null) throw new Exception("Failed to connect to the server.");
@@ -730,14 +840,14 @@ namespace PayrollManagement.Data
             using var cmd = new SqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("@fromStr", (object?)fromDate?.ToString("yyyy-MM-dd") ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@toStr", (object?)toDate?.ToString("yyyy-MM-dd") ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("@search", (object?)search ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@search", (object?)search?.Trim() ?? DBNull.Value);
 
             using var reader = await cmd.ExecuteReaderAsync();
             while (await reader.ReadAsync())
             {
                 list.Add(new RawAttendanceData
                 {
-                    LogID = reader.GetInt32(0),
+                    LogID = reader.IsDBNull(0) ? 0 : Convert.ToInt32(reader.GetValue(0)),
                     EmpID = reader.IsDBNull(1) ? "" : reader.GetValue(1).ToString() ?? "",
                     Date = reader.IsDBNull(2) ? "" : reader.GetString(2),
                     InTime = reader.IsDBNull(3) ? null : reader.GetString(3),
@@ -750,5 +860,3 @@ namespace PayrollManagement.Data
         }
     }
 }
-
-

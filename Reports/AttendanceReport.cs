@@ -24,12 +24,19 @@ namespace PayrollManagement.Reports
                 (startDate, endDate) = AttendanceDateBounds();
             }
 
+            if (string.CompareOrdinal(startDate, endDate) > 0)
+            {
+                var temp = startDate;
+                startDate = endDate;
+                endDate = temp;
+            }
+
             var holidayMap = CalendarHelper.CompanyHolidayMap(startDate, endDate);
             var columns = new List<string> { "EmpID", "Name", "Section", "Designation", "Category", "Date", "In Time", "Out Time" };
             var rows = new List<object?[]>();
 
-            var empQuery = $@"SELECT e.EmpID, e.Name, e.Section, e.Designation, e.Category
-                               FROM EmployeeInfo e WHERE {string.Join(" AND ", employeeWhere)}
+            var empQuery = $@"SELECT e.EmpID, e.Name, e.Section, e.Designation, e.Category, e.Shift
+                               FROM dbo.EmployeeInfo e WHERE {string.Join(" AND ", employeeWhere)}
                                ORDER BY e.EmpID";
             List<object[]> employees;
             try { employees = DbHelper.FetchRows(empQuery, employeeParams.ToArray()); }
@@ -38,16 +45,9 @@ namespace PayrollManagement.Reports
             var empShiftCache = new Dictionary<int, string>();
             foreach (var emp in employees)
             {
-                var empId = Convert.ToInt32(emp[0]);
-                if (!empShiftCache.ContainsKey(empId))
-                {
-                    try
-                    {
-                        var r = DbHelper.FetchRows("SELECT Shift FROM EmployeeInfo WHERE EmpID = @p0", ("@p0", empId));
-                        empShiftCache[empId] = r.Count > 0 ? (r[0][0] as string ?? "").Trim() : "";
-                    }
-                    catch { empShiftCache[empId] = ""; }
-                }
+                if (emp[0] == null) continue;
+                int empId = Convert.ToInt32(emp[0]);
+                empShiftCache[empId] = emp.Length > 5 && emp[5] != null ? (emp[5].ToString() ?? "").Trim() : "";
             }
 
             var extendedEnd = ShiftLogic.ParseDate(endDate).AddDays(1).ToString("yyyy-MM-dd");
@@ -55,8 +55,8 @@ namespace PayrollManagement.Reports
             var attendanceQuery = $@"
                 SELECT e.EmpID, e.Name, e.Section, e.Designation, e.Category,
                        r.Date, r.InTime, r.OutTime
-                FROM RawData r
-                JOIN EmployeeInfo e ON e.EmpID = r.EmpID
+                FROM dbo.RawData r
+                JOIN dbo.EmployeeInfo e ON e.EmpID = r.EmpID
                 WHERE {string.Join(" AND ", employeeWhere)}
                   AND {EmployeeExitHelper.EmployeeActiveOnDateSql("e", "r.Date")}
                   AND r.Date BETWEEN @dStart AND @dEnd
@@ -69,13 +69,17 @@ namespace PayrollManagement.Reports
 
             var rawTimesMap = new Dictionary<(string, string), (string?, string?)>();
             foreach (var r in allRawRows)
-                rawTimesMap[(r[0]!.ToString()!, r[5]!.ToString()!)] = (r[6] as string, r[7] as string);
+            {
+                if (r[0] != null && r[5] != null)
+                    rawTimesMap[(r[0].ToString()!, r[5].ToString()!)] = (r[6] as string, r[7] as string);
+            }
 
             var attendanceMap = new Dictionary<(string, string), object?[]>();
             foreach (var raw in allRawRows)
             {
+                if (raw[0] == null || raw[5] == null) continue;
                 var empId = raw[0]!; var name = raw[1]; var section = raw[2]; var designation = raw[3];
-                var category = raw[4]; var dateValue = raw[5]!.ToString()!;
+                var category = raw[4]; var dateValue = raw[5].ToString()!;
                 var inTimeRaw = raw[6] as string; var outTimeRaw = raw[7] as string;
 
                 if (string.CompareOrdinal(dateValue, endDate) > 0) continue;
@@ -130,6 +134,7 @@ namespace PayrollManagement.Reports
                 var dayName = ShiftLogic.ParseDate(dateValue).DayOfWeek.ToString();
                 foreach (var emp in employees)
                 {
+                    if (emp[0] == null) continue;
                     var empId = Convert.ToInt32(emp[0]);
                     var name = emp[1]; var section = emp[2]; var designation = emp[3]; var category = emp[4];
                     if (!EmployeeExitHelper.IsEmployeeActiveOn(exitDates, empId, dateValue)) continue;
@@ -180,7 +185,7 @@ namespace PayrollManagement.Reports
                 }
             }
 
-            rows = rows.OrderBy(r => r[5]!.ToString())
+            rows = rows.OrderBy(r => r[5]?.ToString() ?? "")
                        .ThenBy(r => NumericSortValue(r[0]))
                        .ToList();
             return new ReportResult { Columns = columns, Rows = rows };
@@ -195,7 +200,7 @@ namespace PayrollManagement.Reports
             try
             {
                 var rows = DbHelper.FetchRows(
-                    "SELECT MIN(Date), MAX(Date) FROM RawData WHERE Date IS NOT NULL AND TRIM(Date) != ''");
+                    "SELECT MIN(Date), MAX(Date) FROM dbo.RawData WHERE Date IS NOT NULL AND LTRIM(RTRIM(Date)) != ''");
                 if (rows.Count == 0 || rows[0][0] is null) return (today, today);
                 return (rows[0][0]!.ToString()!, rows[0][1]?.ToString() ?? today);
             }

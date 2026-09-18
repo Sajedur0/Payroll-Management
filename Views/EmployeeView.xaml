@@ -1,7 +1,23 @@
-﻿<UserControl x:Class="PayrollManagement.Views.EmployeeView"
+<UserControl x:Class="PayrollManagement.Views.EmployeeView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:conv="clr-namespace:PayrollManagement.Converters">
+    <UserControl.Resources>
+        <conv:IndexConverter x:Key="IndexConverter"/>
+        <Style x:Key="CenterCellTextStyle" TargetType="TextBlock">
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+            <Setter Property="TextAlignment" Value="Center"/>
+            <Setter Property="FontSize" Value="12"/>
+        </Style>
+        <Style x:Key="LeftCellTextStyle" TargetType="TextBlock">
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="HorizontalAlignment" Value="Left"/>
+            <Setter Property="Padding" Value="6,0,0,0"/>
+            <Setter Property="FontSize" Value="12"/>
+        </Style>
+    </UserControl.Resources>
+
     <Grid Background="{StaticResource BackgroundBrush}">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -9,10 +25,10 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <!-- Top Header & Action Toolbar -->
-        <Border Grid.Row="0" Background="White" CornerRadius="12" Padding="20" Margin="20,20,20,12">
+        <!-- Top Header & Action Toolbar Card -->
+        <Border Grid.Row="0" Background="White" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="12" Padding="20" Margin="20,18,20,12">
             <Border.Effect>
-                <DropShadowEffect BlurRadius="15" ShadowDepth="2" Opacity="0.08" Color="Black"/>
+                <DropShadowEffect BlurRadius="14" ShadowDepth="2" Opacity="0.04" Color="#0F172A"/>
             </Border.Effect>
             <Grid>
                 <Grid.RowDefinitions>
@@ -22,137 +38,133 @@
 
                 <!-- Row 1: Title & Search -->
                 <Grid Grid.Row="0">
-                    <StackPanel>
-                        <TextBlock Text="Employee Management" FontSize="22" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
-                        <TextBlock Text="Manage all employee information" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,4,0,0"/>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel VerticalAlignment="Center">
+                        <TextBlock Text="Employee Directory" FontSize="20" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                        <TextBlock Text="Directory of workforce personnel, payroll profiles, and shifts" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,3,0,0"/>
                     </StackPanel>
 
-                    <!-- Search Box -->
-                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
-                        <TextBox Width="240" Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" Padding="10,6" VerticalAlignment="Center" Margin="0,0,8,0">
-                            <TextBox.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style></TextBox.Resources>
+                    <!-- Search Box & Refresh -->
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                        <TextBox Width="240" Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" Padding="10,7" VerticalAlignment="Center" Margin="0,0,8,0">
+                            <TextBox.InputBindings>
+                                <KeyBinding Key="Return" Command="{Binding SearchCommand}"/>
+                            </TextBox.InputBindings>
                         </TextBox>
-                        <Button Content="🔍 Search" Command="{Binding SearchCommand}" Padding="14,7" Background="#1E1B4B" Foreground="White" BorderThickness="0" Cursor="Hand" Margin="0,0,8,0">
-                            <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style></Button.Resources>
-                        </Button>
-                        <Button Content="⟳ Refresh" Command="{Binding RefreshCommand}" Padding="14,7" Background="White" Foreground="#4F46E5" BorderBrush="#4F46E5" BorderThickness="1" Cursor="Hand">
-                            <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style></Button.Resources>
-                        </Button>
+                        <Button Content="🔍 Search" Command="{Binding SearchCommand}" Padding="16,7" Background="#1E293B" Foreground="White" BorderThickness="0" Cursor="Hand" Margin="0,0,8,0"/>
+                        <Button Content="⟳ Refresh" Command="{Binding RefreshCommand}" Padding="14,7" Background="White" Foreground="#4F46E5" BorderBrush="#CBD5E1" BorderThickness="1" Cursor="Hand"/>
                     </StackPanel>
                 </Grid>
 
-                <!-- Row 2: Action Buttons Bar (Add, Edit, Delete, Excel Load) -->
+                <!-- Row 2: Action Buttons Bar -->
                 <WrapPanel Grid.Row="1" Orientation="Horizontal" Margin="0,16,0,0">
                     <!-- Add Employee Button -->
                     <Button Content="➕ Add Employee" Command="{Binding OpenAddEmployeeCommand}" 
                             Padding="18,8" Background="#4F46E5" Foreground="White" BorderThickness="0" 
-                            Cursor="Hand" Margin="0,0,10,6" FontWeight="SemiBold">
-                        <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="7"/></Style></Button.Resources>
-                    </Button>
+                            Cursor="Hand" Margin="0,0,10,6" FontWeight="SemiBold"/>
 
                     <!-- Edit Employee Button -->
                     <Button Content="✏️ Edit Selected" Command="{Binding OpenEditEmployeeCommand}" 
                             Padding="16,8" Background="#0284C7" Foreground="White" BorderThickness="0" 
                             Cursor="Hand" Margin="0,0,10,6" FontWeight="SemiBold"
-                            IsEnabled="{Binding HasSelectedEmployee}">
-                        <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="7"/></Style></Button.Resources>
-                        <Button.Style>
-                            <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
-                                <Setter Property="Opacity" Value="1"/>
-                                <Style.Triggers>
-                                    <Trigger Property="IsEnabled" Value="False">
-                                        <Setter Property="Opacity" Value="0.45"/>
-                                    </Trigger>
-                                </Style.Triggers>
-                            </Style>
-                        </Button.Style>
-                    </Button>
+                            IsEnabled="{Binding HasSelectedEmployee}"/>
 
                     <!-- Delete Employee Button -->
                     <Button Content="🗑 Delete Selected" Command="{Binding DeleteCommand}" 
                             Padding="16,8" Background="#DC2626" Foreground="White" BorderThickness="0" 
                             Cursor="Hand" Margin="0,0,14,6" FontWeight="SemiBold"
-                            IsEnabled="{Binding HasSelectedEmployee}">
-                        <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="7"/></Style></Button.Resources>
-                        <Button.Style>
-                            <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
-                                <Setter Property="Opacity" Value="1"/>
-                                <Style.Triggers>
-                                    <Trigger Property="IsEnabled" Value="False">
-                                        <Setter Property="Opacity" Value="0.45"/>
-                                    </Trigger>
-                                </Style.Triggers>
-                            </Style>
-                        </Button.Style>
-                    </Button>
+                            IsEnabled="{Binding HasSelectedEmployee}"/>
 
                     <!-- Excel Import Button -->
-                    <Button Content="📥 Import Data from Excel" Command="{Binding ImportExcelCommand}" 
-                            Padding="18,8" Background="#059669" Foreground="White" BorderThickness="0" 
-                            Cursor="Hand" Margin="0,0,10,6" FontWeight="SemiBold">
-                        <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="7"/></Style></Button.Resources>
-                    </Button>
+                    <Button Content="📥 Import Excel" Command="{Binding ImportExcelCommand}" 
+                            Padding="16,8" Background="#059669" Foreground="White" BorderThickness="0" 
+                            Cursor="Hand" Margin="0,0,10,6" FontWeight="SemiBold"/>
 
                     <!-- Export List PDF Button -->
                     <Button Content="📄 Export List PDF" Command="{Binding ExportListPdfCommand}" 
-                            Padding="18,8" Background="#0F5F9F" Foreground="White" BorderThickness="0" 
-                            Cursor="Hand" Margin="0,0,10,6" FontWeight="SemiBold">
-                        <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="7"/></Style></Button.Resources>
-                    </Button>
+                            Padding="16,8" Background="#334155" Foreground="White" BorderThickness="0" 
+                            Cursor="Hand" Margin="0,0,10,6" FontWeight="SemiBold"/>
 
                     <!-- Export Selected Profile PDF Button -->
                     <Button Content="📇 Export Profile PDF" Command="{Binding ExportProfilePdfCommand}" 
-                            Padding="18,8" Background="#7C3AED" Foreground="White" BorderThickness="0" 
+                            Padding="16,8" Background="#7C3AED" Foreground="White" BorderThickness="0" 
                             Cursor="Hand" Margin="0,0,10,6" FontWeight="SemiBold"
-                            IsEnabled="{Binding HasSelectedEmployee}">
-                        <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="7"/></Style></Button.Resources>
-                    </Button>
+                            IsEnabled="{Binding HasSelectedEmployee}"/>
 
                     <!-- Loading Indicator -->
-                    <TextBlock Text="Loading from database..." Foreground="#4F46E5" FontWeight="SemiBold" VerticalAlignment="Center" Margin="14,0,0,6">
-                        <TextBlock.Style>
-                            <Style TargetType="TextBlock">
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="12,0,0,6">
+                        <StackPanel.Style>
+                            <Style TargetType="StackPanel">
                                 <Setter Property="Visibility" Value="Collapsed"/>
                                 <Style.Triggers>
-                                    <DataTrigger Binding="{Binding IsLoading}" Value="True"><Setter Property="Visibility" Value="Visible"/></DataTrigger>
+                                    <DataTrigger Binding="{Binding IsLoading}" Value="True">
+                                        <Setter Property="Visibility" Value="Visible"/>
+                                    </DataTrigger>
                                 </Style.Triggers>
                             </Style>
-                        </TextBlock.Style>
-                    </TextBlock>
+                        </StackPanel.Style>
+                        <TextBlock Text="⏳" FontSize="13" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                        <TextBlock Text="Loading data..." Foreground="#4F46E5" FontWeight="SemiBold" FontSize="12" VerticalAlignment="Center"/>
+                    </StackPanel>
                 </WrapPanel>
             </Grid>
         </Border>
 
         <!-- Status Messages -->
-        <StackPanel Grid.Row="1" Margin="20,0,20,8">
-            <Border Background="#DCFCE7" CornerRadius="8" Padding="14,9" Margin="0,0,0,6">
+        <StackPanel Grid.Row="1" Margin="20,0,20,6">
+            <!-- Success Message -->
+            <Border Background="#ECFDF5" BorderBrush="#A7F3D0" BorderThickness="1" CornerRadius="8" Padding="14,9" Margin="0,0,0,6">
                 <Border.Style>
                     <Style TargetType="Border">
                         <Setter Property="Visibility" Value="Collapsed"/>
                         <Style.Triggers>
-                            <DataTrigger Binding="{Binding HasSuccess}" Value="True"><Setter Property="Visibility" Value="Visible"/></DataTrigger>
+                            <DataTrigger Binding="{Binding HasSuccess}" Value="True">
+                                <Setter Property="Visibility" Value="Visible"/>
+                            </DataTrigger>
                         </Style.Triggers>
                     </Style>
                 </Border.Style>
-                <TextBlock Text="{Binding SuccessMessage}" Foreground="#166534" FontSize="12.5" FontWeight="SemiBold" TextWrapping="Wrap"/>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="✓" Foreground="#059669" FontWeight="Bold" FontSize="14" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                    <TextBlock Grid.Column="1" Text="{Binding SuccessMessage}" Foreground="#065F46" FontSize="12.5" FontWeight="SemiBold" TextWrapping="Wrap" VerticalAlignment="Center"/>
+                </Grid>
             </Border>
-            <Border Background="#FEE2E2" CornerRadius="8" Padding="14,9" Margin="0,0,0,6">
+
+            <!-- Error Message -->
+            <Border Background="#FEF2F2" BorderBrush="#FECACA" BorderThickness="1" CornerRadius="8" Padding="14,9" Margin="0,0,0,6">
                 <Border.Style>
                     <Style TargetType="Border">
                         <Setter Property="Visibility" Value="Collapsed"/>
                         <Style.Triggers>
-                            <DataTrigger Binding="{Binding HasError}" Value="True"><Setter Property="Visibility" Value="Visible"/></DataTrigger>
+                            <DataTrigger Binding="{Binding HasError}" Value="True">
+                                <Setter Property="Visibility" Value="Visible"/>
+                            </DataTrigger>
                         </Style.Triggers>
                     </Style>
                 </Border.Style>
-                <TextBlock Text="{Binding ErrorMessage}" Foreground="#991B1B" FontSize="12.5" FontWeight="SemiBold" TextWrapping="Wrap"/>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="⚠️" FontSize="14" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                    <TextBlock Grid.Column="1" Text="{Binding ErrorMessage}" Foreground="#991B1B" FontSize="12.5" FontWeight="SemiBold" TextWrapping="Wrap" VerticalAlignment="Center"/>
+                </Grid>
             </Border>
         </StackPanel>
 
-        <!-- Employee DataGrid Full View -->
-        <Border Grid.Row="2" Background="White" CornerRadius="12" Margin="20,0,20,20" Padding="14">
+        <!-- Employee DataGrid Full View Card -->
+        <Border Grid.Row="2" Background="White" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="12" Margin="20,0,20,18" Padding="14">
             <Border.Effect>
-                <DropShadowEffect BlurRadius="15" ShadowDepth="2" Opacity="0.08" Color="Black"/>
+                <DropShadowEffect BlurRadius="14" ShadowDepth="2" Opacity="0.04" Color="#0F172A"/>
             </Border.Effect>
             <Grid>
                 <Grid.RowDefinitions>
@@ -161,40 +173,35 @@
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
-                <!-- DataGrid Header info -->
-                <Grid Grid.Row="0" Margin="4,0,4,10">
-                    <TextBlock Text="Employee Directory" FontSize="14" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
-                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                        <TextBlock Text="Total: " Foreground="{StaticResource TextSecondaryBrush}" FontSize="12" VerticalAlignment="Center"/>
-                        <TextBlock Text="{Binding Employees.Count, StringFormat='{}{0} employees'}" Foreground="#4F46E5" FontSize="12" FontWeight="Bold" VerticalAlignment="Center"/>
+                <!-- Table Header Bar with Count Badge -->
+                <Grid Grid.Row="0" Margin="4,0,4,12">
+                    <TextBlock Text="Employee Directory Records" FontSize="14" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                        <Border Background="#EEF2FF" CornerRadius="20" Padding="12,5">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <TextBlock Text="Total: " Foreground="#4F46E5" FontSize="11.5" FontWeight="Medium"/>
+                                <TextBlock Text="{Binding Employees.Count, StringFormat='{}{0} employees'}" Foreground="#4F46E5" FontSize="11.5" FontWeight="Bold"/>
+                            </StackPanel>
+                        </Border>
                     </StackPanel>
                 </Grid>
 
                 <!-- DataGrid -->
                 <DataGrid Grid.Row="1" ItemsSource="{Binding Employees}" SelectedItem="{Binding SelectedEmployee, Mode=TwoWay}" 
                           AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False"
-                          GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="#F0F0F0" BorderThickness="0"
-                          HeadersVisibility="Column" RowHeight="36" AlternatingRowBackground="#F9FAFB" 
+                          GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="#F1F5F9" BorderThickness="0"
+                          HeadersVisibility="Column" RowHeight="38" AlternatingRowBackground="#FAFAFA" 
                           SelectionMode="Single" SelectionUnit="FullRow" AlternationCount="100000"
                           MouseDoubleClick="DataGrid_MouseDoubleClick">
-                    <DataGrid.Resources>
-                        <conv:IndexConverter x:Key="IndexConverter"/>
-                        <Style x:Key="CenterCellTextStyle" TargetType="TextBlock">
-                            <Setter Property="VerticalAlignment" Value="Center"/>
-                            <Setter Property="HorizontalAlignment" Value="Center"/>
-                            <Setter Property="TextAlignment" Value="Center"/>
-                            <Setter Property="Padding" Value="0"/>
-                        </Style>
-                    </DataGrid.Resources>
                     <DataGrid.ColumnHeaderStyle>
                         <Style TargetType="DataGridColumnHeader">
-                            <Setter Property="Background" Value="#1E1B4B"/>
-                            <Setter Property="Foreground" Value="White"/>
+                            <Setter Property="Background" Value="#F8FAFC"/>
+                            <Setter Property="Foreground" Value="#475569"/>
                             <Setter Property="FontWeight" Value="SemiBold"/>
                             <Setter Property="Padding" Value="10,8"/>
                             <Setter Property="FontSize" Value="11.5"/>
-                            <Setter Property="BorderThickness" Value="0,0,1,0"/>
-                            <Setter Property="BorderBrush" Value="#312E81"/>
+                            <Setter Property="BorderThickness" Value="0,0,0,1"/>
+                            <Setter Property="BorderBrush" Value="#E2E8F0"/>
                             <Setter Property="HorizontalContentAlignment" Value="Center"/>
                             <Setter Property="VerticalContentAlignment" Value="Center"/>
                         </Style>
@@ -202,46 +209,25 @@
                     <DataGrid.RowStyle>
                         <Style TargetType="DataGridRow">
                             <Setter Property="VerticalContentAlignment" Value="Center"/>
-                            <Setter Property="VerticalAlignment" Value="Center"/>
                             <Style.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter Property="Background" Value="#F1F5F9"/>
+                                </Trigger>
+                                <Trigger Property="IsSelected" Value="True">
+                                    <Setter Property="Background" Value="#EEF2FF"/>
+                                    <Setter Property="Foreground" Value="#1E1B4B"/>
+                                </Trigger>
                                 <DataTrigger Binding="{Binding Status}" Value="Resigned">
-                                    <Setter Property="Background" Value="#FEE2E2"/>
-                                    <Setter Property="Foreground" Value="#7F1D1D"/>
+                                    <Setter Property="Background" Value="#FEF2F2"/>
+                                    <Setter Property="Foreground" Value="#991B1B"/>
                                 </DataTrigger>
                                 <DataTrigger Binding="{Binding Status}" Value="resigned">
-                                    <Setter Property="Background" Value="#FEE2E2"/>
-                                    <Setter Property="Foreground" Value="#7F1D1D"/>
+                                    <Setter Property="Background" Value="#FEF2F2"/>
+                                    <Setter Property="Foreground" Value="#991B1B"/>
                                 </DataTrigger>
                             </Style.Triggers>
                         </Style>
                     </DataGrid.RowStyle>
-                    <DataGrid.CellStyle>
-                        <Style TargetType="DataGridCell">
-                            <Setter Property="Padding" Value="0"/>
-                            <Setter Property="BorderThickness" Value="0"/>
-                            <Setter Property="VerticalContentAlignment" Value="Center"/>
-                            <Setter Property="HorizontalContentAlignment" Value="Center"/>
-                            <Setter Property="Template">
-                                <Setter.Value>
-                                    <ControlTemplate TargetType="DataGridCell">
-                                        <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
-                                            <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Center"/>
-                                        </Border>
-                                    </ControlTemplate>
-                                </Setter.Value>
-                            </Setter>
-                            <Style.Triggers>
-                                <DataTrigger Binding="{Binding Status}" Value="Resigned">
-                                    <Setter Property="Background" Value="#FEE2E2"/>
-                                    <Setter Property="Foreground" Value="#7F1D1D"/>
-                                </DataTrigger>
-                                <DataTrigger Binding="{Binding Status}" Value="resigned">
-                                    <Setter Property="Background" Value="#FEE2E2"/>
-                                    <Setter Property="Foreground" Value="#7F1D1D"/>
-                                </DataTrigger>
-                            </Style.Triggers>
-                        </Style>
-                    </DataGrid.CellStyle>
                     <DataGrid.Columns>
                         <DataGridTemplateColumn Header="SL" Width="55" CanUserSort="False">
                             <DataGridTemplateColumn.CellTemplate>
@@ -251,10 +237,10 @@
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
                         <DataGridTextColumn Header="Emp ID" Binding="{Binding EmpID}" Width="80" ElementStyle="{StaticResource CenterCellTextStyle}"/>
-                        <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="160" ElementStyle="{StaticResource CenterCellTextStyle}"/>
-                        <DataGridTextColumn Header="Designation" Binding="{Binding Designation}" Width="140" ElementStyle="{StaticResource CenterCellTextStyle}"/>
-                        <DataGridTextColumn Header="Section" Binding="{Binding Section}" Width="130" ElementStyle="{StaticResource CenterCellTextStyle}"/>
-                        <DataGridTextColumn Header="Department" Binding="{Binding Department}" Width="125" ElementStyle="{StaticResource CenterCellTextStyle}"/>
+                        <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="160" ElementStyle="{StaticResource LeftCellTextStyle}"/>
+                        <DataGridTextColumn Header="Designation" Binding="{Binding Designation}" Width="140" ElementStyle="{StaticResource LeftCellTextStyle}"/>
+                        <DataGridTextColumn Header="Section" Binding="{Binding Section}" Width="130" ElementStyle="{StaticResource LeftCellTextStyle}"/>
+                        <DataGridTextColumn Header="Department" Binding="{Binding Department}" Width="125" ElementStyle="{StaticResource LeftCellTextStyle}"/>
                         <DataGridTextColumn Header="Shift" Binding="{Binding Shift}" Width="60" ElementStyle="{StaticResource CenterCellTextStyle}"/>
                         <DataGridTextColumn Header="Category" Binding="{Binding Category}" Width="80" ElementStyle="{StaticResource CenterCellTextStyle}"/>
                         <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="80" ElementStyle="{StaticResource CenterCellTextStyle}"/>
@@ -263,18 +249,17 @@
                         <DataGridTextColumn Header="Rocket AC" Binding="{Binding RocketAC}" Width="120" ElementStyle="{StaticResource CenterCellTextStyle}"/>
                         <DataGridTextColumn Header="Gender" Binding="{Binding Gender}" Width="75" ElementStyle="{StaticResource CenterCellTextStyle}"/>
                         <DataGridTextColumn Header="Religion" Binding="{Binding Religion}" Width="80" ElementStyle="{StaticResource CenterCellTextStyle}"/>
-                        <DataGridTextColumn Header="Father Name" Binding="{Binding FatherName}" Width="140" ElementStyle="{StaticResource CenterCellTextStyle}"/>
+                        <DataGridTextColumn Header="Father Name" Binding="{Binding FatherName}" Width="140" ElementStyle="{StaticResource LeftCellTextStyle}"/>
                         <DataGridTextColumn Header="NID" Binding="{Binding NID}" Width="110" ElementStyle="{StaticResource CenterCellTextStyle}"/>
-                        <DataGridTextColumn Header="Present Address" Binding="{Binding PresAddress}" Width="180" ElementStyle="{StaticResource CenterCellTextStyle}"/>
-                        <DataGridTextColumn Header="Permanent Address" Binding="{Binding PermAddress}" Width="180" ElementStyle="{StaticResource CenterCellTextStyle}"/>
+                        <DataGridTextColumn Header="Present Address" Binding="{Binding PresAddress}" Width="180" ElementStyle="{StaticResource LeftCellTextStyle}"/>
+                        <DataGridTextColumn Header="Permanent Address" Binding="{Binding PermAddress}" Width="180" ElementStyle="{StaticResource LeftCellTextStyle}"/>
                     </DataGrid.Columns>
                 </DataGrid>
 
                 <!-- Footer Hint -->
-                <TextBlock Grid.Row="2" Text="💡 Tip: To edit an employee, click a row and press '✏️ Edit Selected' above, or press '🗑 Delete Selected' to delete." 
-                           FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" Margin="4,10,4,0"/>
+                <TextBlock Grid.Row="2" Text="💡 Double-click any row to edit, or select a row and use the action buttons above." 
+                           FontSize="11.5" Foreground="{StaticResource TextSecondaryBrush}" Margin="4,10,4,0"/>
             </Grid>
         </Border>
     </Grid>
 </UserControl>
-

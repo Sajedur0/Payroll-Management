@@ -1,38 +1,15 @@
-﻿<UserControl x:Class="PayrollManagement.Views.ReportView"
+<UserControl x:Class="PayrollManagement.Views.ReportView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <UserControl.Resources>
         <!-- Soft input style -->
-        <Style x:Key="FilterTextBox" TargetType="TextBox">
-            <Setter Property="Padding" Value="10,7"/>
-            <Setter Property="FontSize" Value="12.5"/>
-            <Setter Property="Background" Value="#F9FAFB"/>
-            <Setter Property="BorderBrush" Value="#E5E7EB"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="Foreground" Value="#111827"/>
-            <Style.Triggers>
-                <Trigger Property="IsFocused" Value="True">
-                    <Setter Property="BorderBrush" Value="#6366F1"/>
-                    <Setter Property="Background" Value="White"/>
-                </Trigger>
-            </Style.Triggers>
+        <Style x:Key="FilterLabelStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="#64748B"/>
+            <Setter Property="Margin" Value="0,0,0,5"/>
         </Style>
-        <Style x:Key="FilterComboBox" TargetType="ComboBox">
-            <Setter Property="Padding" Value="8,6"/>
-            <Setter Property="FontSize" Value="12.5"/>
-            <Setter Property="Background" Value="#F9FAFB"/>
-            <Setter Property="BorderBrush" Value="#E5E7EB"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="MinHeight" Value="32"/>
-        </Style>
-        <Style x:Key="FilterDatePicker" TargetType="DatePicker">
-            <Setter Property="FontSize" Value="12.5"/>
-            <Setter Property="Background" Value="#F9FAFB"/>
-            <Setter Property="BorderBrush" Value="#E5E7EB"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="Padding" Value="4"/>
-            <Setter Property="Height" Value="32"/>
-        </Style>
+
         <!-- Report action buttons base -->
         <Style x:Key="ReportActionButton" TargetType="Button">
             <Setter Property="Foreground" Value="White"/>
@@ -40,31 +17,26 @@
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="FontSize" Value="12.5"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="Padding" Value="16,10"/>
+            <Setter Property="Padding" Value="16,9"/>
             <Setter Property="Margin" Value="0,0,10,10"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
-                        <Border x:Name="Bd" Background="{TemplateBinding Background}" CornerRadius="10" Padding="{TemplateBinding Padding}">
+                        <Border x:Name="Bd" Background="{TemplateBinding Background}" CornerRadius="8" Padding="{TemplateBinding Padding}">
                             <Border.Effect>
-                                <DropShadowEffect BlurRadius="12" ShadowDepth="2" Opacity="0.16" Color="Black"/>
+                                <DropShadowEffect BlurRadius="10" ShadowDepth="1" Opacity="0.12" Color="#0F172A"/>
                             </Border.Effect>
                             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
-                                <TextBlock Text="{TemplateBinding Tag}" FontSize="14" Margin="0,0,7,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="{TemplateBinding Tag}" FontSize="13" Margin="0,0,8,0" VerticalAlignment="Center"/>
                                 <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Center"/>
                             </StackPanel>
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
                                 <Setter TargetName="Bd" Property="Opacity" Value="0.92"/>
-                                <Setter TargetName="Bd" Property="Effect">
-                                    <Setter.Value>
-                                        <DropShadowEffect BlurRadius="18" ShadowDepth="3" Opacity="0.22" Color="Black"/>
-                                    </Setter.Value>
-                                </Setter>
                             </Trigger>
                             <Trigger Property="IsPressed" Value="True">
-                                <Setter TargetName="Bd" Property="Opacity" Value="0.85"/>
+                                <Setter TargetName="Bd" Property="Opacity" Value="0.82"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -73,10 +45,10 @@
         </Style>
     </UserControl.Resources>
 
-    <ScrollViewer Padding="22" Background="{StaticResource BackgroundBrush}" VerticalScrollBarVisibility="Auto">
+    <ScrollViewer Padding="20" Background="{StaticResource BackgroundBrush}" VerticalScrollBarVisibility="Auto">
         <StackPanel>
-            <!-- Status / Error (compact, replaces hero) -->
-            <Border Background="#EEF2FF" CornerRadius="10" Padding="10,7" Margin="0,0,0,10">
+            <!-- Status & Error Alerts -->
+            <Border Background="#EEF2FF" BorderBrush="#C7D2FE" BorderThickness="1" CornerRadius="8" Padding="14,9" Margin="0,0,0,10">
                 <Border.Style>
                     <Style TargetType="Border">
                         <Setter Property="Visibility" Value="Visible"/>
@@ -86,9 +58,17 @@
                         </Style.Triggers>
                     </Style>
                 </Border.Style>
-                <TextBlock Text="{Binding StatusMessage}" Foreground="#4338CA" FontSize="11.5" TextWrapping="Wrap"/>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="ℹ️" FontSize="13" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                    <TextBlock Grid.Column="1" Text="{Binding StatusMessage}" Foreground="#4338CA" FontSize="12" FontWeight="SemiBold" TextWrapping="Wrap" VerticalAlignment="Center"/>
+                </Grid>
             </Border>
-            <Border Background="#FEE2E2" CornerRadius="10" Padding="10,7" Margin="0,0,0,10">
+
+            <Border Background="#FEF2F2" BorderBrush="#FECACA" BorderThickness="1" CornerRadius="8" Padding="14,9" Margin="0,0,0,10">
                 <Border.Style>
                     <Style TargetType="Border">
                         <Setter Property="Visibility" Value="Collapsed"/>
@@ -97,27 +77,34 @@
                         </Style.Triggers>
                     </Style>
                 </Border.Style>
-                <TextBlock Text="{Binding ErrorMessage}" Foreground="#B91C1C" FontSize="11.5" TextWrapping="Wrap"/>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="⚠️" FontSize="13" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                    <TextBlock Grid.Column="1" Text="{Binding ErrorMessage}" Foreground="#991B1B" FontSize="12" FontWeight="SemiBold" TextWrapping="Wrap" VerticalAlignment="Center"/>
+                </Grid>
             </Border>
 
             <!-- FILTERS CARD -->
-            <Border Background="White" CornerRadius="16" Padding="20" Margin="0,0,0,16">
+            <Border Background="White" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="12" Padding="20" Margin="0,0,0,16">
                 <Border.Effect>
-                    <DropShadowEffect BlurRadius="16" ShadowDepth="2" Opacity="0.07" Color="Black"/>
+                    <DropShadowEffect BlurRadius="14" ShadowDepth="2" Opacity="0.04" Color="#0F172A"/>
                 </Border.Effect>
                 <StackPanel>
-                    <Grid Margin="0,0,0,14">
+                    <Grid Margin="0,0,0,16">
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                            <Border Background="#EEF2FF" CornerRadius="8" Width="28" Height="28" Margin="0,0,8,0">
+                            <Border Background="#EEF2FF" CornerRadius="8" Width="30" Height="30" Margin="0,0,10,0">
                                 <TextBlock Text="◧" Foreground="#4F46E5" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                             </Border>
-                            <TextBlock Text="Filters" FontSize="14.5" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
-                            <Border Background="#F3F4F6" CornerRadius="12" Padding="8,3" Margin="10,0,0,0" VerticalAlignment="Center">
-                                <TextBlock Text="Dependent dropdowns • auto-narrowed" FontSize="10" Foreground="{StaticResource TextSecondaryBrush}"/>
+                            <TextBlock Text="Report Criteria &amp; Filters" FontSize="15" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                            <Border Background="#F1F5F9" CornerRadius="12" Padding="8,3" Margin="12,0,0,0" VerticalAlignment="Center">
+                                <TextBlock Text="Auto-narrowed dependent dropdowns" FontSize="10.5" Foreground="#64748B"/>
                             </Border>
                         </StackPanel>
-                        <Border Background="#FEF3C7" CornerRadius="8" Padding="8,4" HorizontalAlignment="Right" VerticalAlignment="Center">
-                            <TextBlock Text="Grace = late/early threshold" FontSize="10" Foreground="#92400E" FontWeight="SemiBold"/>
+                        <Border Background="#FFFBEB" BorderBrush="#FDE68A" BorderThickness="1" CornerRadius="8" Padding="10,4" HorizontalAlignment="Right" VerticalAlignment="Center">
+                            <TextBlock Text="Grace Minutes = Late / Early threshold" FontSize="10.5" Foreground="#92400E" FontWeight="SemiBold"/>
                         </Border>
                     </Grid>
 
@@ -127,118 +114,115 @@
                         </Grid.ColumnDefinitions>
                         <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
 
-                        <StackPanel Grid.Row="0" Grid.Column="0" Margin="0,0,10,12">
-                            <TextBlock Text="EMPLOYEE ID" FontSize="10" FontWeight="SemiBold" Foreground="#6B7280" Margin="0,0,0,5"/>
-                            <TextBox Text="{Binding EmpId, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource FilterTextBox}">
-                                <TextBox.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="8"/></Style></TextBox.Resources>
-                            </TextBox>
+                        <StackPanel Grid.Row="0" Grid.Column="0" Margin="0,0,12,14">
+                            <TextBlock Text="EMPLOYEE ID" Style="{StaticResource FilterLabelStyle}"/>
+                            <TextBox Text="{Binding EmpId, UpdateSourceTrigger=PropertyChanged}" Padding="10,6"/>
                         </StackPanel>
-                        <StackPanel Grid.Row="0" Grid.Column="1" Margin="0,0,10,12">
-                            <TextBlock Text="SECTION" FontSize="10" FontWeight="SemiBold" Foreground="#6B7280" Margin="0,0,0,5"/>
+
+                        <StackPanel Grid.Row="0" Grid.Column="1" Margin="0,0,12,14">
+                            <TextBlock Text="SECTION" Style="{StaticResource FilterLabelStyle}"/>
                             <ComboBox ItemsSource="{Binding SectionOptions}" SelectedItem="{Binding Section, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                      IsEditable="False" IsSynchronizedWithCurrentItem="False" IsTextSearchEnabled="True" Style="{StaticResource FilterComboBox}">
-                                <ComboBox.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="8"/></Style></ComboBox.Resources>
-                            </ComboBox>
+                                      IsEditable="False" IsSynchronizedWithCurrentItem="False" IsTextSearchEnabled="True"/>
                         </StackPanel>
-                        <StackPanel Grid.Row="0" Grid.Column="2" Margin="0,0,10,12">
-                            <TextBlock Text="DESIGNATION" FontSize="10" FontWeight="SemiBold" Foreground="#6B7280" Margin="0,0,0,5"/>
+
+                        <StackPanel Grid.Row="0" Grid.Column="2" Margin="0,0,12,14">
+                            <TextBlock Text="DESIGNATION" Style="{StaticResource FilterLabelStyle}"/>
                             <ComboBox ItemsSource="{Binding DesignationOptions}" SelectedItem="{Binding Designation, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                      IsEditable="False" IsSynchronizedWithCurrentItem="False" IsTextSearchEnabled="True" Style="{StaticResource FilterComboBox}"/>
+                                      IsEditable="False" IsSynchronizedWithCurrentItem="False" IsTextSearchEnabled="True"/>
                         </StackPanel>
-                        <StackPanel Grid.Row="0" Grid.Column="3" Margin="0,0,0,12">
-                            <TextBlock Text="CATEGORY" FontSize="10" FontWeight="SemiBold" Foreground="#6B7280" Margin="0,0,0,5"/>
+
+                        <StackPanel Grid.Row="0" Grid.Column="3" Margin="0,0,0,14">
+                            <TextBlock Text="CATEGORY" Style="{StaticResource FilterLabelStyle}"/>
                             <ComboBox ItemsSource="{Binding CategoryOptions}" SelectedItem="{Binding Category, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                      IsEditable="False" IsSynchronizedWithCurrentItem="False" IsTextSearchEnabled="True" Style="{StaticResource FilterComboBox}"/>
+                                      IsEditable="False" IsSynchronizedWithCurrentItem="False" IsTextSearchEnabled="True"/>
                         </StackPanel>
 
-                        <StackPanel Grid.Row="1" Grid.Column="0" Margin="0,0,10,0">
-                            <TextBlock Text="SHIFT" FontSize="10" FontWeight="SemiBold" Foreground="#6B7280" Margin="0,0,0,5"/>
+                        <StackPanel Grid.Row="1" Grid.Column="0" Margin="0,0,12,0">
+                            <TextBlock Text="SHIFT" Style="{StaticResource FilterLabelStyle}"/>
                             <ComboBox ItemsSource="{Binding ShiftOptions}" SelectedItem="{Binding Shift, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                      IsEditable="False" IsSynchronizedWithCurrentItem="False" IsTextSearchEnabled="True" Style="{StaticResource FilterComboBox}"/>
-                        </StackPanel>
-                        <StackPanel Grid.Row="1" Grid.Column="1" Margin="0,0,10,0">
-                            <TextBlock Text="GRACE MINUTES" FontSize="10" FontWeight="SemiBold" Foreground="#6B7280" Margin="0,0,0,5"/>
-                            <TextBox Text="{Binding GraceMinutes, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource FilterTextBox}"/>
+                                      IsEditable="False" IsSynchronizedWithCurrentItem="False" IsTextSearchEnabled="True"/>
                         </StackPanel>
 
-                        <StackPanel Grid.Row="1" Grid.Column="2" Margin="0,0,10,0">
-                            <TextBlock Text="FROM DATE" FontSize="10" FontWeight="SemiBold" Foreground="#6B7280" Margin="0,0,0,5"/>
-                            <DatePicker SelectedDate="{Binding FromDate}" Style="{StaticResource FilterDatePicker}"/>
+                        <StackPanel Grid.Row="1" Grid.Column="1" Margin="0,0,12,0">
+                            <TextBlock Text="GRACE MINUTES" Style="{StaticResource FilterLabelStyle}"/>
+                            <TextBox Text="{Binding GraceMinutes, UpdateSourceTrigger=PropertyChanged}" Padding="10,6"/>
                         </StackPanel>
+
+                        <StackPanel Grid.Row="1" Grid.Column="2" Margin="0,0,12,0">
+                            <TextBlock Text="FROM DATE" Style="{StaticResource FilterLabelStyle}"/>
+                            <DatePicker SelectedDate="{Binding FromDate}"/>
+                        </StackPanel>
+
                         <StackPanel Grid.Row="1" Grid.Column="3" Margin="0,0,0,0">
-                            <TextBlock Text="TO DATE" FontSize="10" FontWeight="SemiBold" Foreground="#6B7280" Margin="0,0,0,5"/>
-                            <DatePicker SelectedDate="{Binding ToDate}" Style="{StaticResource FilterDatePicker}"/>
+                            <TextBlock Text="TO DATE" Style="{StaticResource FilterLabelStyle}"/>
+                            <DatePicker SelectedDate="{Binding ToDate}"/>
                         </StackPanel>
                     </Grid>
                 </StackPanel>
             </Border>
 
-            <!-- REPORT ACTIONS -->
-            <Border Background="White" CornerRadius="16" Padding="20" Margin="0,0,0,16">
+            <!-- REPORT GENERATION BUTTONS CARD -->
+            <Border Background="White" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="12" Padding="20" Margin="0,0,0,16">
                 <Border.Effect>
-                    <DropShadowEffect BlurRadius="16" ShadowDepth="2" Opacity="0.07" Color="Black"/>
+                    <DropShadowEffect BlurRadius="14" ShadowDepth="2" Opacity="0.04" Color="#0F172A"/>
                 </Border.Effect>
                 <StackPanel>
-                    <Grid Margin="0,0,0,14">
+                    <Grid Margin="0,0,0,16">
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                            <Border Background="#EEF2FF" CornerRadius="8" Width="28" Height="28" Margin="0,0,8,0">
-                                <TextBlock Text="⚡" Foreground="#4F46E5" FontSize="13" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            <Border Background="#EEF2FF" CornerRadius="8" Width="30" Height="30" Margin="0,0,10,0">
+                                <TextBlock Text="⚡" Foreground="#4F46E5" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                             </Border>
-                            <TextBlock Text="Quick Reports" FontSize="14.5" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
-                            <TextBlock Text="— one click, same logic" FontSize="11" Foreground="#9CA3AF" VerticalAlignment="Center" Margin="8,0,0,0"/>
+                            <TextBlock Text="Generate Reports" FontSize="15" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                            <TextBlock Text="— Click any report below to execute instantly" FontSize="11.5" Foreground="#94A3B8" VerticalAlignment="Center" Margin="8,0,0,0"/>
                         </StackPanel>
-                        <Border Background="#F3F4F6" CornerRadius="8" Padding="8,4" HorizontalAlignment="Right" VerticalAlignment="Center">
-                            <TextBlock Text="7 reports • Holiday › Friday › Attendance" FontSize="10" Foreground="#6B7280" FontWeight="SemiBold"/>
+                        <Border Background="#F1F5F9" CornerRadius="8" Padding="10,4" HorizontalAlignment="Right" VerticalAlignment="Center">
+                            <TextBlock Text="Standardized enterprise reporting" FontSize="10.5" Foreground="#64748B" FontWeight="SemiBold"/>
                         </Border>
                     </Grid>
                     <WrapPanel>
-                        <Button Content="Attendance" Tag="◉" Command="{Binding AttendanceCommand}" Style="{StaticResource ReportActionButton}" Background="#4F46E5"/>
-                        <Button Content="Absent" Tag="✕" Command="{Binding AbsentCommand}" Style="{StaticResource ReportActionButton}" Background="#EF4444"/>
-                        <Button Content="Present" Tag="✓" Command="{Binding PresentCommand}" Style="{StaticResource ReportActionButton}" Background="#10B981"/>
-                        <Button Content="Late" Tag="◷" Command="{Binding LateCommand}" Style="{StaticResource ReportActionButton}" Background="#F59E0B"/>
-                        <Button Content="Early" Tag="◐" Command="{Binding EarlyCommand}" Style="{StaticResource ReportActionButton}" Background="#8B5CF6"/>
-                        <Button Content="Duty Duration" Tag="◔" Command="{Binding DutyDurationCommand}" Style="{StaticResource ReportActionButton}" Background="#06B6D4"/>
-                        <Button Content="Monthly Summary" Tag="▦" Command="{Binding MonthlySummaryCommand}" Style="{StaticResource ReportActionButton}" Background="#1F2937"/>
+                        <Button Content="Attendance Report" Tag="◉" Command="{Binding AttendanceCommand}" Style="{StaticResource ReportActionButton}" Background="#4F46E5"/>
+                        <Button Content="Absent Report" Tag="✕" Command="{Binding AbsentCommand}" Style="{StaticResource ReportActionButton}" Background="#DC2626"/>
+                        <Button Content="Present Report" Tag="✓" Command="{Binding PresentCommand}" Style="{StaticResource ReportActionButton}" Background="#059669"/>
+                        <Button Content="Late Report" Tag="◷" Command="{Binding LateCommand}" Style="{StaticResource ReportActionButton}" Background="#D97706"/>
+                        <Button Content="Early Report" Tag="◐" Command="{Binding EarlyCommand}" Style="{StaticResource ReportActionButton}" Background="#7C3AED"/>
+                        <Button Content="Duty Duration" Tag="◔" Command="{Binding DutyDurationCommand}" Style="{StaticResource ReportActionButton}" Background="#0284C7"/>
+                        <Button Content="Monthly Summary" Tag="▦" Command="{Binding MonthlySummaryCommand}" Style="{StaticResource ReportActionButton}" Background="#0F172A"/>
                     </WrapPanel>
                 </StackPanel>
             </Border>
 
-            <!-- RESULTS -->
-            <Border Background="White" CornerRadius="16" Padding="0" Margin="0,0,0,16">
+            <!-- RESULTS TABLE CARD -->
+            <Border Background="White" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="12" Padding="0" Margin="0,0,0,16">
                 <Border.Effect>
-                    <DropShadowEffect BlurRadius="16" ShadowDepth="2" Opacity="0.07" Color="Black"/>
+                    <DropShadowEffect BlurRadius="14" ShadowDepth="2" Opacity="0.04" Color="#0F172A"/>
                 </Border.Effect>
                 <StackPanel>
-                    <Border Background="#F9FAFB" CornerRadius="16,16,0,0" Padding="16" BorderBrush="#F3F4F6" BorderThickness="0,0,0,1">
+                    <Border Background="#F8FAFC" CornerRadius="12,12,0,0" Padding="16,14" BorderBrush="#E2E8F0" BorderThickness="0,0,0,1">
                         <Grid>
                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                <Border Background="#4F46E5" CornerRadius="8" Width="30" Height="30" Margin="0,0,10,0">
+                                <Border Background="#4F46E5" CornerRadius="8" Width="32" Height="32" Margin="0,0,10,0">
                                     <TextBlock Text="▤" Foreground="White" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                 </Border>
                                 <StackPanel VerticalAlignment="Center">
-                                    <TextBlock Text="{Binding ReportTitle}" FontSize="14" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
-                                    <TextBlock Text="Holiday = P • Friday = WL/WP • Absent = no punch" FontSize="10" Foreground="#9CA3AF"/>
+                                    <TextBlock Text="{Binding ReportTitle}" FontSize="15" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                    <TextBlock Text="Generated data preview and export controls" FontSize="11" Foreground="#64748B" Margin="0,2,0,0"/>
                                 </StackPanel>
                             </StackPanel>
                             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
-                                <Border Background="#EEF2FF" CornerRadius="20" Padding="10,5" Margin="0,0,8,0" VerticalAlignment="Center">
-                                    <TextBlock FontSize="11" Foreground="#4338CA" FontWeight="SemiBold">
-                                        <Run Text="{Binding Result.Rows.Count, Mode=OneWay}"/><Run Text=" rows"/>
+                                <Border Background="#EEF2FF" CornerRadius="20" Padding="12,6" Margin="0,0,10,0" VerticalAlignment="Center">
+                                    <TextBlock FontSize="11.5" Foreground="#4F46E5" FontWeight="SemiBold">
+                                        <Run Text="{Binding Result.Rows.Count, Mode=OneWay}"/><Run Text=" rows generated"/>
                                     </TextBlock>
                                 </Border>
-                                <Button Content="Export PDF" Command="{Binding ExportCommand}" Padding="12,6" Background="#4F46E5" Foreground="White" BorderThickness="0" Cursor="Hand" FontSize="11" FontWeight="SemiBold">
-                                    <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="8"/></Style></Button.Resources>
-                                </Button>
-                                <Button Content="Print" Command="{Binding PrintCommand}" Margin="8,0,0,0" Padding="12,6" Background="#1F2937" Foreground="White" BorderThickness="0" Cursor="Hand" FontSize="11" FontWeight="SemiBold">
-                                    <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="8"/></Style></Button.Resources>
-                                </Button>
+                                <Button Content="📄 Export PDF" Command="{Binding ExportCommand}" Padding="14,7" Background="#4F46E5" Foreground="White" BorderThickness="0" Cursor="Hand" FontSize="12" FontWeight="SemiBold"/>
+                                <Button Content="🖨️ Print" Command="{Binding PrintCommand}" Margin="8,0,0,0" Padding="14,7" Background="#1E293B" Foreground="White" BorderThickness="0" Cursor="Hand" FontSize="12" FontWeight="SemiBold"/>
                             </StackPanel>
                         </Grid>
                     </Border>
 
-                    <!-- Loading -->
+                    <!-- Loading State Banner -->
                     <Grid>
-                        <Border Background="#EEF2FF" CornerRadius="8" Padding="10" Margin="16,12,16,0" HorizontalAlignment="Stretch">
+                        <Border Background="#EEF2FF" BorderBrush="#C7D2FE" BorderThickness="1" CornerRadius="8" Padding="12" Margin="16,14,16,0" HorizontalAlignment="Stretch">
                             <Border.Style>
                                 <Style TargetType="Border">
                                     <Setter Property="Visibility" Value="Collapsed"/>
@@ -248,64 +232,45 @@
                                 </Style>
                             </Border.Style>
                             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                                <TextBlock Text="⏳" FontSize="12" Margin="0,0,6,0" VerticalAlignment="Center"/>
-                                <TextBlock Text="Generating report, please wait..." FontSize="11.5" Foreground="#4338CA" VerticalAlignment="Center"/>
+                                <TextBlock Text="⏳" FontSize="13" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="Generating report from database, please wait..." FontSize="12" Foreground="#4338CA" FontWeight="SemiBold" VerticalAlignment="Center"/>
                             </StackPanel>
                         </Border>
                     </Grid>
 
                     <!-- DataGrid -->
-                    <Border Padding="12">
-                        <DataGrid ItemsSource="{Binding ResultTable}" AutoGenerateColumns="True" IsReadOnly="True" CanUserAddRows="False" MaxHeight="520"
-                                  GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="#F3F4F6" BorderThickness="1" BorderBrush="#F3F4F6" HeadersVisibility="Column" RowHeight="30" AlternatingRowBackground="#F9FAFB" FontSize="11.5"
-                                  HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" Background="White">
-                            <DataGrid.Resources>
-                                <Style TargetType="DataGridCell">
-                                    <Setter Property="Padding" Value="8,4"/>
-                                    <Setter Property="BorderThickness" Value="0"/>
+                    <Border Padding="14">
+                        <DataGrid ItemsSource="{Binding ResultTable}" AutoGenerateColumns="True" IsReadOnly="True" CanUserAddRows="False" MaxHeight="540"
+                                  GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="#F1F5F9" BorderThickness="1" BorderBrush="#E2E8F0" HeadersVisibility="Column" RowHeight="34" AlternatingRowBackground="#FAFAFA" FontSize="12">
+                            <DataGrid.ColumnHeaderStyle>
+                                <Style TargetType="DataGridColumnHeader">
+                                    <Setter Property="Background" Value="#F8FAFC"/>
+                                    <Setter Property="Foreground" Value="#475569"/>
+                                    <Setter Property="FontWeight" Value="SemiBold"/>
+                                    <Setter Property="Padding" Value="10,8"/>
+                                    <Setter Property="FontSize" Value="11.5"/>
+                                    <Setter Property="BorderThickness" Value="0,0,0,1"/>
+                                    <Setter Property="BorderBrush" Value="#E2E8F0"/>
                                 </Style>
+                            </DataGrid.ColumnHeaderStyle>
+                            <DataGrid.RowStyle>
                                 <Style TargetType="DataGridRow">
+                                    <Setter Property="VerticalContentAlignment" Value="Center"/>
                                     <Style.Triggers>
                                         <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter Property="Background" Value="#F1F5F9"/>
+                                        </Trigger>
+                                        <Trigger Property="IsSelected" Value="True">
                                             <Setter Property="Background" Value="#EEF2FF"/>
+                                            <Setter Property="Foreground" Value="#1E1B4B"/>
                                         </Trigger>
                                     </Style.Triggers>
                                 </Style>
-                            </DataGrid.Resources>
-                            <DataGrid.ColumnHeaderStyle>
-                                <Style TargetType="DataGridColumnHeader">
-                                    <Setter Property="Background" Value="#1F2937"/>
-                                    <Setter Property="Foreground" Value="White"/>
-                                    <Setter Property="FontWeight" Value="SemiBold"/>
-                                    <Setter Property="Padding" Value="10,8"/>
-                                    <Setter Property="FontSize" Value="11"/>
-                                    <Setter Property="BorderBrush" Value="#374151"/>
-                                    <Setter Property="BorderThickness" Value="0,0,1,0"/>
-                                </Style>
-                            </DataGrid.ColumnHeaderStyle>
+                            </DataGrid.RowStyle>
                         </DataGrid>
-                    </Border>
-
-                    <!-- Empty state -->
-                    <Border Margin="16,0,16,16" Padding="18" CornerRadius="10" Background="#F9FAFB" BorderBrush="#F3F4F6" BorderThickness="1">
-                        <Border.Style>
-                            <Style TargetType="Border">
-                                <Setter Property="Visibility" Value="Collapsed"/>
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding HasResult}" Value="True"><Setter Property="Visibility" Value="Collapsed"/></DataTrigger>
-                                    <DataTrigger Binding="{Binding HasResult}" Value="False"><Setter Property="Visibility" Value="Visible"/></DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </Border.Style>
-                        <StackPanel HorizontalAlignment="Center">
-                            <TextBlock Text="—  No data yet  —" FontSize="11" Foreground="#9CA3AF" HorizontalAlignment="Center" FontWeight="SemiBold"/>
-                            <TextBlock Text="Set filters and click any report button above. Same business logic remains unchanged." FontSize="11" Foreground="#6B7280" HorizontalAlignment="Center" Margin="0,6,0,0" TextWrapping="Wrap" TextAlignment="Center" MaxWidth="520"/>
-                        </StackPanel>
                     </Border>
                 </StackPanel>
             </Border>
-
-            <TextBlock Text="© Payroll Management  •  Report Tab v2  •  Logic unchanged, UI refreshed" FontSize="10" Foreground="#9CA3AF" HorizontalAlignment="Center" Margin="0,4,0,12"/>
         </StackPanel>
     </ScrollViewer>
 </UserControl>

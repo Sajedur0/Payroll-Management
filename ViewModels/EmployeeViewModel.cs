@@ -1,4 +1,4 @@
-﻿using System.Collections.ObjectModel;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Globalization;
 using System.IO;
@@ -131,9 +131,9 @@ namespace PayrollManagement.ViewModels
         public List<string> GenderList { get; } = new() { "Male", "Female" };
         public List<string> ShiftList { get; } = new() { "G", "O", "A", "B", "C", "H", "S" };
         public List<string> CategoryList { get; } = new() { "Worker", "Staff", "Officer" };
-        public List<string> StatusList { get; } = new() { "Active", "resigned", "Inactive" };
+        public List<string> StatusList { get; } = new() { "Active", "Resigned", "Inactive" };
         public List<string> ReligionList { get; } = new() { "Islam", "Hindu", "Christian", "Buddhist" };
-        public List<string> DepartmentList { get; } = new()
+        public ObservableCollection<string> DepartmentList { get; } = new()
         {
             "Design", "Dyeing", "F & A", "Finishing", "HR & Admin",
             "Maintenance", "Marketing", "Pretreatment", "Printing",
@@ -185,16 +185,17 @@ namespace PayrollManagement.ViewModels
             _ = LoadAsync();
         }
 
-        public async Task LoadAsync()
+        public async Task LoadAsync(bool preserveSuccessMessage = false)
         {
             if (IsLoading) return;
             IsLoading = true;
             ErrorMessage = null;
+            if (!preserveSuccessMessage)
+                SuccessMessage = null;
             try
             {
                 var list = await _repo.GetEmployeesAsync(string.IsNullOrWhiteSpace(SearchText) ? null : SearchText);
                 Employees = new ObservableCollection<Employee>(list);
-                SuccessMessage = null;
             }
             catch (Exception ex)
             {
@@ -219,7 +220,7 @@ namespace PayrollManagement.ViewModels
             bool? result = win.ShowDialog();
             if (result == true)
             {
-                _ = LoadAsync();
+                _ = LoadAsync(preserveSuccessMessage: true);
             }
         }
 
@@ -243,7 +244,7 @@ namespace PayrollManagement.ViewModels
             bool? result = win.ShowDialog();
             if (result == true)
             {
-                _ = LoadAsync();
+                _ = LoadAsync(preserveSuccessMessage: true);
             }
         }
 
@@ -253,16 +254,22 @@ namespace PayrollManagement.ViewModels
             SL = SelectedEmployee.SL;
             Name = SelectedEmployee.Name;
             EmpIDText = SelectedEmployee.EmpID?.ToString() ?? "";
-            Gender = string.IsNullOrWhiteSpace(SelectedEmployee.Gender) ? "Male" : SelectedEmployee.Gender;
+            Gender = GenderList.FirstOrDefault(g => string.Equals(g, SelectedEmployee.Gender, StringComparison.OrdinalIgnoreCase)) ?? (string.IsNullOrWhiteSpace(SelectedEmployee.Gender) ? "Male" : SelectedEmployee.Gender);
             Designation = SelectedEmployee.Designation;
             Section = SelectedEmployee.Section;
-            Department = SelectedEmployee.Department;
-            Shift = string.IsNullOrWhiteSpace(SelectedEmployee.Shift) ? "G" : SelectedEmployee.Shift;
-            Category = string.IsNullOrWhiteSpace(SelectedEmployee.Category) ? "Worker" : SelectedEmployee.Category;
-            Status = string.IsNullOrWhiteSpace(SelectedEmployee.Status) ? "Active" : SelectedEmployee.Status;
+
+            if (!string.IsNullOrWhiteSpace(SelectedEmployee.Department) && !DepartmentList.Any(d => string.Equals(d, SelectedEmployee.Department, StringComparison.OrdinalIgnoreCase)))
+            {
+                DepartmentList.Add(SelectedEmployee.Department);
+            }
+            Department = DepartmentList.FirstOrDefault(d => string.Equals(d, SelectedEmployee.Department, StringComparison.OrdinalIgnoreCase)) ?? (SelectedEmployee.Department ?? "");
+
+            Shift = ShiftList.FirstOrDefault(s => string.Equals(s, SelectedEmployee.Shift, StringComparison.OrdinalIgnoreCase)) ?? (string.IsNullOrWhiteSpace(SelectedEmployee.Shift) ? "G" : SelectedEmployee.Shift);
+            Category = CategoryList.FirstOrDefault(c => string.Equals(c, SelectedEmployee.Category, StringComparison.OrdinalIgnoreCase)) ?? (string.IsNullOrWhiteSpace(SelectedEmployee.Category) ? "Worker" : SelectedEmployee.Category);
+            Status = StatusList.FirstOrDefault(st => string.Equals(st, SelectedEmployee.Status, StringComparison.OrdinalIgnoreCase)) ?? (string.IsNullOrWhiteSpace(SelectedEmployee.Status) ? "Active" : SelectedEmployee.Status);
             RocketAC = SelectedEmployee.RocketAC;
             GrossWagesText = SelectedEmployee.GrossWages.HasValue ? SelectedEmployee.GrossWages.Value.ToString(CultureInfo.InvariantCulture) : "";
-            Religion = string.IsNullOrWhiteSpace(SelectedEmployee.Religion) ? "Islam" : SelectedEmployee.Religion;
+            Religion = ReligionList.FirstOrDefault(r => string.Equals(r, SelectedEmployee.Religion, StringComparison.OrdinalIgnoreCase)) ?? (string.IsNullOrWhiteSpace(SelectedEmployee.Religion) ? "Islam" : SelectedEmployee.Religion);
 
             if (DateTime.TryParse(SelectedEmployee.DOJ, out var parsedDate))
                 DOJDate = parsedDate;
@@ -328,6 +335,12 @@ namespace PayrollManagement.ViewModels
             if (string.IsNullOrWhiteSpace(Designation))
             {
                 error = "Designation is required.";
+                return false;
+            }
+
+            if (string.IsNullOrWhiteSpace(Department))
+            {
+                error = "Department is required.";
                 return false;
             }
 
@@ -471,7 +484,10 @@ namespace PayrollManagement.ViewModels
             }
             catch (Exception ex)
             {
-                FormErrorMessage = $"Update failed: {ex.Message}";
+                if (ex.Message.Contains("UNIQUE") || ex.Message.Contains("duplicate") || ex.Message.Contains("UQ__Employee__AF2DBA78"))
+                    FormErrorMessage = $"EmpID '{empId}' already exists. Please use a different EmpID.";
+                else
+                    FormErrorMessage = $"Update failed: {ex.Message}";
                 return false;
             }
         }
@@ -494,7 +510,7 @@ namespace PayrollManagement.ViewModels
                 await _repo.DeleteEmployeeAsync(emp.SL);
                 SuccessMessage = $"✓ Employee (SL={emp.SL}, EmpID={emp.EmpID}, Name={emp.Name}) has been deleted.";
                 SelectedEmployee = null;
-                await LoadAsync();
+                await LoadAsync(preserveSuccessMessage: true);
             }
             catch (Exception ex)
             {
@@ -522,7 +538,7 @@ namespace PayrollManagement.ViewModels
             {
                 var (inserted, updated) = await _repo.ImportEmployeesFromExcelAsync(openFileDialog.FileName);
                 SuccessMessage = $"✓ Successfully loaded {inserted + updated} employees from Excel! (New: {inserted}, Updated: {updated})";
-                await LoadAsync();
+                await LoadAsync(preserveSuccessMessage: true);
             }
             catch (Exception ex)
             {

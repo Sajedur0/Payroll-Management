@@ -14,10 +14,17 @@ namespace PayrollManagement.Reports
             string startDate, endDate;
             if (!string.IsNullOrEmpty(filters.FromDate) && !string.IsNullOrEmpty(filters.ToDate))
             {
+                startDate = filters.FromDate;
+                endDate = filters.ToDate;
+                if (string.CompareOrdinal(startDate, endDate) > 0)
+                {
+                    var temp = startDate;
+                    startDate = endDate;
+                    endDate = temp;
+                }
                 where.Add($"r.Date BETWEEN @p{i} AND @p{i + 1}");
-                parameters.Add(($"@p{i}", filters.FromDate));
-                parameters.Add(($"@p{i + 1}", filters.ToDate));
-                startDate = filters.FromDate; endDate = filters.ToDate;
+                parameters.Add(($"@p{i}", startDate));
+                parameters.Add(($"@p{i + 1}", endDate));
                 i += 2;
             }
             else
@@ -33,7 +40,7 @@ namespace PayrollManagement.Reports
             var query = $@"
                 SELECT e.EmpID, e.Name, e.Section, e.Designation, e.Category,
                        r.Date, r.InTime, r.OutTime
-                FROM RawData r JOIN EmployeeInfo e ON e.EmpID = r.EmpID
+                FROM dbo.RawData r JOIN dbo.EmployeeInfo e ON e.EmpID = r.EmpID
                 WHERE {string.Join(" AND ", where)}
                 ORDER BY r.Date, e.EmpID";
 
@@ -43,8 +50,9 @@ namespace PayrollManagement.Reports
             {
                 foreach (var r in DbHelper.FetchRows(query, parameters.ToArray()))
                 {
+                    if (r[5] == null) continue;
                     var rowValues = (object?[])r.Clone();
-                    var dateValue = rowValues[5]!.ToString()!;
+                    var dateValue = rowValues[5].ToString()!;
                     if (holidayMap.TryGetValue(dateValue, out var festival))
                     {
                         rowValues[6] = CalendarHelper.HolidayMarker(festival);
@@ -65,17 +73,19 @@ namespace PayrollManagement.Reports
                 try
                 {
                     var empQuery = $@"SELECT e.EmpID, e.Name, e.Section, e.Designation, e.Category
-                                   FROM EmployeeInfo e WHERE {string.Join(" AND ", employeeWhere)}
+                                   FROM dbo.EmployeeInfo e WHERE {string.Join(" AND ", employeeWhere)}
                                    ORDER BY e.EmpID";
                     var employees = DbHelper.FetchRows(empQuery, employeeParams.ToArray());
                     var exitDates = EmployeeExitHelper.GetEmployeeExitDateMap();
-                    var existingKeys = rows.Select(r => (r[0]!.ToString(), r[5]!.ToString())).ToHashSet();
+                    var existingKeys = rows.Where(r => r[0] != null && r[5] != null)
+                        .Select(r => (r[0]!.ToString()!, r[5]!.ToString()!)).ToHashSet();
 
                     foreach (var dateValue in ReportQueryBuilder.DateRangeValues(startDate, endDate))
                     {
                         if (!holidayMap.TryGetValue(dateValue, out var festival)) continue;
                         foreach (var emp in employees)
                         {
+                            if (emp[0] == null) continue;
                             var empId = Convert.ToInt32(emp[0]);
                             if (!EmployeeExitHelper.IsEmployeeActiveOn(exitDates, empId, dateValue)) continue;
                             var key = (empId.ToString(), dateValue);
@@ -85,7 +95,7 @@ namespace PayrollManagement.Reports
                             existingKeys.Add(key);
                         }
                     }
-                    rows = rows.OrderBy(r => r[5]!.ToString())
+                    rows = rows.OrderBy(r => r[5]?.ToString() ?? "")
                                .ThenBy(r => double.TryParse(r[0]?.ToString(), out var d) ? d : double.PositiveInfinity)
                                .ToList();
                 }

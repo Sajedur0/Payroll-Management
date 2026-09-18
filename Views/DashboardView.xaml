@@ -3,28 +3,11 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:lvc="clr-namespace:LiveChartsCore.SkiaSharpView.WPF;assembly=LiveChartsCore.SkiaSharpView.WPF">
 
-    <ScrollViewer Padding="30" Background="{StaticResource BackgroundBrush}">
+    <ScrollViewer Padding="24" Background="{StaticResource BackgroundBrush}" VerticalScrollBarVisibility="Auto">
         <StackPanel>
 
-            <!-- Header -->
-            <Grid Margin="0,0,0,25">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                </Grid.ColumnDefinitions>
-                <StackPanel>
-                    <TextBlock Text="Dashboard" FontSize="26" FontWeight="Bold"
-                               Foreground="{StaticResource TextPrimaryBrush}"/>
-                    <TextBlock Text="Welcome! See today's overall overview" FontSize="13"
-                               Foreground="{StaticResource TextSecondaryBrush}" Margin="0,4,0,0"/>
-                </StackPanel>
-                <TextBlock Grid.Column="1" Text="{Binding CurrentDate}" FontSize="13"
-                           Foreground="{StaticResource TextSecondaryBrush}"
-                           VerticalAlignment="Center"/>
-            </Grid>
-
-            <!-- Loading / Error Banner -->
-            <Border Background="#FEF3C7" CornerRadius="8" Padding="12,8" Margin="0,0,0,15">
+            <!-- Error Banner -->
+            <Border Background="#FEF2F2" BorderBrush="#FECACA" BorderThickness="1" CornerRadius="10" Padding="14,10" Margin="0,0,0,20">
                 <Border.Style>
                     <Style TargetType="Border">
                         <Setter Property="Visibility" Value="Collapsed"/>
@@ -35,86 +18,150 @@
                         </Style.Triggers>
                     </Style>
                 </Border.Style>
-                <TextBlock Text="{Binding ErrorMessage}" Foreground="#92400E" FontSize="12" TextWrapping="Wrap"/>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="⚠️" FontSize="14" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                    <TextBlock Grid.Column="1" Text="{Binding ErrorMessage}" Foreground="#991B1B" FontSize="12.5" FontWeight="SemiBold" VerticalAlignment="Center" TextWrapping="Wrap"/>
+                </Grid>
             </Border>
 
-            <!-- Summary Cards -->
-            <Grid>
+            <!-- Top Row: Welcome & Quick Refresh -->
+            <Grid Margin="0,0,0,20">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition/>
-                    <ColumnDefinition/>
-                    <ColumnDefinition/>
-                    <ColumnDefinition/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel VerticalAlignment="Center">
+                    <TextBlock Text="Workforce Summary" FontSize="20" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                    <TextBlock Text="Real-time employee counts and attendance analytics" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,3,0,0"/>
+                </StackPanel>
+                <Button Grid.Column="1" Command="{Binding RefreshCommand}" Background="White" Foreground="#4F46E5" BorderBrush="#CBD5E1" BorderThickness="1" Padding="14,7" Cursor="Hand">
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <TextBlock Text="⟳" FontSize="14" FontWeight="Bold" Margin="0,0,6,0"/>
+                        <TextBlock Text="Refresh Stats" FontWeight="SemiBold"/>
+                    </StackPanel>
+                </Button>
+            </Grid>
+
+            <!-- 4 Summary KPI Cards -->
+            <Grid Margin="0,0,0,20">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
 
-                <!-- Card 1 -->
-                <Border Grid.Column="0" Background="White" CornerRadius="14" Margin="0,0,10,0" Padding="20">
+                <!-- Card 1: Total Employees -->
+                <Border Grid.Column="0" Background="White" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="12" Margin="0,0,12,0" Padding="18">
                     <Border.Effect>
-                        <DropShadowEffect BlurRadius="15" ShadowDepth="2" Opacity="0.08" Color="Black"/>
+                        <DropShadowEffect BlurRadius="12" ShadowDepth="2" Opacity="0.04" Color="#0F172A"/>
                     </Border.Effect>
-                    <StackPanel>
-                        <Border Background="#EEF2FF" CornerRadius="10" Width="42" Height="42" HorizontalAlignment="Left">
-                            <TextBlock Text="👥" FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Border>
-                        <TextBlock Text="Total Employees" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,14,0,4" FontSize="13"/>
-                        <TextBlock Text="{Binding TotalEmployees}" FontSize="24" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
-                    </StackPanel>
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <Grid Grid.Row="0" Margin="0,0,0,12">
+                            <TextBlock Text="TOTAL EMPLOYEES" Foreground="{StaticResource TextSecondaryBrush}" FontSize="11" FontWeight="SemiBold"/>
+                            <Border HorizontalAlignment="Right" Background="#EEF2FF" CornerRadius="8" Width="36" Height="36">
+                                <TextBlock Text="👥" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                        </Grid>
+                        <TextBlock Grid.Row="1" Text="{Binding TotalEmployees}" FontSize="28" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                        <TextBlock Grid.Row="2" Text="Active in employee directory" FontSize="11" Foreground="#94A3B8" Margin="0,4,0,0"/>
+                    </Grid>
                 </Border>
 
-                <!-- Card 2 -->
-                <Border Grid.Column="1" Background="White" CornerRadius="14" Margin="0,0,10,0" Padding="20">
+                <!-- Card 2: Present Today -->
+                <Border Grid.Column="1" Background="White" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="12" Margin="0,0,12,0" Padding="18">
                     <Border.Effect>
-                        <DropShadowEffect BlurRadius="15" ShadowDepth="2" Opacity="0.08" Color="Black"/>
+                        <DropShadowEffect BlurRadius="12" ShadowDepth="2" Opacity="0.04" Color="#0F172A"/>
                     </Border.Effect>
-                    <StackPanel>
-                        <Border Background="#ECFDF5" CornerRadius="10" Width="42" Height="42" HorizontalAlignment="Left">
-                            <TextBlock Text="✅" FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Border>
-                        <TextBlock Text="Present Today" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,14,0,4" FontSize="13"/>
-                        <TextBlock Text="{Binding PresentToday}" FontSize="24" FontWeight="Bold" Foreground="#059669"/>
-                    </StackPanel>
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <Grid Grid.Row="0" Margin="0,0,0,12">
+                            <TextBlock Text="PRESENT TODAY" Foreground="{StaticResource TextSecondaryBrush}" FontSize="11" FontWeight="SemiBold"/>
+                            <Border HorizontalAlignment="Right" Background="#ECFDF5" CornerRadius="8" Width="36" Height="36">
+                                <TextBlock Text="✅" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                        </Grid>
+                        <TextBlock Grid.Row="1" Text="{Binding PresentToday}" FontSize="28" FontWeight="Bold" Foreground="#059669"/>
+                        <TextBlock Grid.Row="2" Text="Punched in successfully" FontSize="11" Foreground="#059669" Margin="0,4,0,0"/>
+                    </Grid>
                 </Border>
 
-                <!-- Card 3 -->
-                <Border Grid.Column="2" Background="White" CornerRadius="14" Margin="0,0,10,0" Padding="20">
+                <!-- Card 3: Absent Today -->
+                <Border Grid.Column="2" Background="White" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="12" Margin="0,0,12,0" Padding="18">
                     <Border.Effect>
-                        <DropShadowEffect BlurRadius="15" ShadowDepth="2" Opacity="0.08" Color="Black"/>
+                        <DropShadowEffect BlurRadius="12" ShadowDepth="2" Opacity="0.04" Color="#0F172A"/>
                     </Border.Effect>
-                    <StackPanel>
-                        <Border Background="#FEF2F2" CornerRadius="10" Width="42" Height="42" HorizontalAlignment="Left">
-                            <TextBlock Text="❌" FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Border>
-                        <TextBlock Text="Absent Today" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,14,0,4" FontSize="13"/>
-                        <TextBlock Text="{Binding AbsentToday}" FontSize="24" FontWeight="Bold" Foreground="#DC2626"/>
-                    </StackPanel>
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <Grid Grid.Row="0" Margin="0,0,0,12">
+                            <TextBlock Text="ABSENT TODAY" Foreground="{StaticResource TextSecondaryBrush}" FontSize="11" FontWeight="SemiBold"/>
+                            <Border HorizontalAlignment="Right" Background="#FEF2F2" CornerRadius="8" Width="36" Height="36">
+                                <TextBlock Text="❌" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                        </Grid>
+                        <TextBlock Grid.Row="1" Text="{Binding AbsentToday}" FontSize="28" FontWeight="Bold" Foreground="#DC2626"/>
+                        <TextBlock Grid.Row="2" Text="No attendance punches" FontSize="11" Foreground="#DC2626" Margin="0,4,0,0"/>
+                    </Grid>
                 </Border>
 
-                <!-- Card 4 -->
-                <Border Grid.Column="3" Background="White" CornerRadius="14" Padding="20">
+                <!-- Card 4: On Leave -->
+                <Border Grid.Column="3" Background="White" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="12" Padding="18">
                     <Border.Effect>
-                        <DropShadowEffect BlurRadius="15" ShadowDepth="2" Opacity="0.08" Color="Black"/>
+                        <DropShadowEffect BlurRadius="12" ShadowDepth="2" Opacity="0.04" Color="#0F172A"/>
                     </Border.Effect>
-                    <StackPanel>
-                        <Border Background="#FFFBEB" CornerRadius="10" Width="42" Height="42" HorizontalAlignment="Left">
-                            <TextBlock Text="🌴" FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Border>
-                        <TextBlock Text="On Leave" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,14,0,4" FontSize="13"/>
-                        <TextBlock Text="{Binding OnLeave}" FontSize="24" FontWeight="Bold" Foreground="#D97706"/>
-                    </StackPanel>
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <Grid Grid.Row="0" Margin="0,0,0,12">
+                            <TextBlock Text="ON LEAVE" Foreground="{StaticResource TextSecondaryBrush}" FontSize="11" FontWeight="SemiBold"/>
+                            <Border HorizontalAlignment="Right" Background="#FFFBEB" CornerRadius="8" Width="36" Height="36">
+                                <TextBlock Text="🌴" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                        </Grid>
+                        <TextBlock Grid.Row="1" Text="{Binding OnLeave}" FontSize="28" FontWeight="Bold" Foreground="#D97706"/>
+                        <TextBlock Grid.Row="2" Text="Approved leave status" FontSize="11" Foreground="#D97706" Margin="0,4,0,0"/>
+                    </Grid>
                 </Border>
             </Grid>
 
             <!-- Chart Section -->
-            <Border Background="White" CornerRadius="14" Padding="20" Margin="0,20,0,20">
+            <Border Background="White" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="14" Padding="22" Margin="0,0,0,20">
                 <Border.Effect>
-                    <DropShadowEffect BlurRadius="15" ShadowDepth="2" Opacity="0.08" Color="Black"/>
+                    <DropShadowEffect BlurRadius="16" ShadowDepth="2" Opacity="0.05" Color="#0F172A"/>
                 </Border.Effect>
                 <StackPanel>
-                    <TextBlock Text="Weekly Attendance Trend" FontSize="16" FontWeight="Bold"
-                               Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,15"/>
+                    <Grid Margin="0,0,0,16">
+                        <StackPanel VerticalAlignment="Center">
+                            <TextBlock Text="Weekly Attendance Trend" FontSize="16" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                            <TextBlock Text="Daily punch volume over the past 7 days" FontSize="11.5" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,3,0,0"/>
+                        </StackPanel>
+                        <Border HorizontalAlignment="Right" Background="#F1F5F9" CornerRadius="20" Padding="12,5">
+                            <TextBlock Text="{Binding StatusMessage}" FontSize="11" Foreground="#475569" FontWeight="Medium"/>
+                        </Border>
+                    </Grid>
                     <lvc:CartesianChart Series="{Binding AttendanceSeries}"
                                         XAxes="{Binding WeekDaysAxis}"
-                                        Height="260"/>
+                                        Height="280"/>
                 </StackPanel>
             </Border>
 

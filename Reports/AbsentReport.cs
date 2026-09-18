@@ -10,10 +10,20 @@ namespace PayrollManagement.Reports
             var columns = new List<string> { "EmpID", "Name", "Section", "Designation", "Category", "Date" };
             var rows = new List<object?[]>();
             var nonAbsentDays = CalendarHelper.NonAbsentDays();
-            var holidayMap = CalendarHelper.CompanyHolidayMap(filters.FromDate, filters.ToDate);
+
+            string fromDate = filters.FromDate;
+            string toDate = filters.ToDate;
+            if (!string.IsNullOrEmpty(fromDate) && !string.IsNullOrEmpty(toDate) && string.CompareOrdinal(fromDate, toDate) > 0)
+            {
+                var temp = fromDate;
+                fromDate = toDate;
+                toDate = temp;
+            }
+
+            var holidayMap = CalendarHelper.CompanyHolidayMap(fromDate, toDate);
 
             List<string> dates;
-            try { dates = ReportQueryBuilder.DateRangeValues(filters.FromDate, filters.ToDate); }
+            try { dates = ReportQueryBuilder.DateRangeValues(fromDate, toDate); }
             catch { return new ReportResult { Columns = columns, Rows = rows }; }
 
             foreach (var dateValue in dates)
@@ -23,8 +33,8 @@ namespace PayrollManagement.Reports
 
                 var query = $@"
                     SELECT e.EmpID, e.Name, e.Section, e.Designation, e.Category, @dv
-                    FROM EmployeeInfo e
-                    LEFT JOIN RawData r ON r.EmpID = e.EmpID AND r.Date = @dv2
+                    FROM dbo.EmployeeInfo e
+                    LEFT JOIN dbo.RawData r ON r.EmpID = e.EmpID AND r.Date = @dv2
                     WHERE {string.Join(" AND ", employeeWhere)}
                       AND {EmployeeExitHelper.EmployeeActiveOnDateSql("e", "@dv3")}
                       AND r.LogID IS NULL

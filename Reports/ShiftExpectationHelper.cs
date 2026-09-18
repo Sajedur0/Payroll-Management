@@ -30,6 +30,20 @@ namespace PayrollManagement.Reports
             }
             catch { }
 
+            try
+            {
+                var duty = ShiftLogic.GetDutyTypeForDate(shiftName, dateValue);
+                if (duty == "Night") return ShiftLogic.NightIn;
+                if (duty == "Day") return ShiftLogic.DayIn;
+            }
+            catch { }
+
+            // Default fallback for standard shifts if no schedule was saved in DB
+            var upper = shiftName.ToUpperInvariant();
+            if (upper.Contains("NIGHT")) return ShiftLogic.NightIn;
+            if (upper == "A" || upper == "B" || upper == "G" || upper == "O" || upper == "C" || upper == "H" || upper == "S" || upper.Contains("DAY"))
+                return ShiftLogic.DayIn;
+
             return null;
         }
 
@@ -42,7 +56,7 @@ namespace PayrollManagement.Reports
                 try
                 {
                     var rows = DbHelper.FetchRows(
-                        "SELECT Shift FROM EmployeeInfo WHERE EmpID = @p0", ("@p0", empId));
+                        "SELECT Shift FROM dbo.EmployeeInfo WHERE EmpID = @p0", ("@p0", empId));
                     shiftName = rows.Count > 0 ? (rows[0][0] as string ?? "").Trim() : "";
                 }
                 catch { shiftName = ""; }

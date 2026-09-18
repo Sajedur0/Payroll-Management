@@ -152,6 +152,9 @@ namespace PayrollManagement.Reports
                 ? GroupByEmployee(result)
                 : new List<List<object?[]>> { result.Rows };
 
+            if (groups.Count == 0)
+                groups.Add(new List<object?[]>());
+
             QuestPDF.Settings.License = LicenseType.Community;
 
             if (!filePath.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase))
@@ -179,6 +182,8 @@ namespace PayrollManagement.Reports
 
                         if (options.RepeatCompanyHeaderOnEveryPage)
                             page.Header().Column(col => DrawCompanyHeader(col, company, reportTitle, reportFilters));
+                        else
+                            page.Header().ShowOnce().Column(col => DrawCompanyHeader(col, company, reportTitle, reportFilters));
 
                         page.Content().PaddingTop(4).Table(table =>
                         {
@@ -229,6 +234,7 @@ namespace PayrollManagement.Reports
                                         table.Cell()
                                             .ColumnSpan((uint)span)
                                             .Background(PdfDesign.MergedCellBg)
+                                            .BorderBottom(PdfDesign.GridLineWidth).BorderColor(PdfDesign.GridGray)
                                             .PaddingLeft(2).PaddingRight(2).PaddingTop(3).PaddingBottom(3)
                                             .AlignCenter().AlignMiddle()
                                             .Text(merged)
@@ -304,6 +310,9 @@ namespace PayrollManagement.Reports
 
                     if (options.RepeatCompanyHeaderOnEveryPage)
                         page.Header().Column(col => DrawCompanyHeader(col, company,
+                            "Employee Information", $"Total Employees: {employees.Count}"));
+                    else
+                        page.Header().ShowOnce().Column(col => DrawCompanyHeader(col, company,
                             "Employee Information", $"Total Employees: {employees.Count}"));
 
                     page.Content().PaddingTop(6).Column(col =>
@@ -440,6 +449,9 @@ namespace PayrollManagement.Reports
 
                     if (options.RepeatCompanyHeaderOnEveryPage)
                         page.Header().Column(col => DrawCompanyHeader(col, company,
+                            "Employee Profile", employeeName));
+                    else
+                        page.Header().ShowOnce().Column(col => DrawCompanyHeader(col, company,
                             "Employee Profile", employeeName));
 
                     page.Content().PaddingTop(4).Column(col =>

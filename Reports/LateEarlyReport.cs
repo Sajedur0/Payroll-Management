@@ -19,10 +19,18 @@ namespace PayrollManagement.Reports
             var parameters = new List<(string, object)>(employeeParams);
             int i = employeeParams.Count;
 
-            if (!string.IsNullOrEmpty(filters.FromDate) && !string.IsNullOrEmpty(filters.ToDate))
+            string fromDate = filters.FromDate;
+            string toDate = filters.ToDate;
+            if (!string.IsNullOrEmpty(fromDate) && !string.IsNullOrEmpty(toDate))
             {
+                if (string.CompareOrdinal(fromDate, toDate) > 0)
+                {
+                    var temp = fromDate;
+                    fromDate = toDate;
+                    toDate = temp;
+                }
                 where.Add($"r.Date BETWEEN @p{i} AND @p{i + 1}");
-                parameters.Add(($"@p{i}", filters.FromDate)); parameters.Add(($"@p{i + 1}", filters.ToDate));
+                parameters.Add(($"@p{i}", fromDate)); parameters.Add(($"@p{i + 1}", toDate));
                 i += 2;
             }
             else if (!string.IsNullOrEmpty(filters.Date))
@@ -36,7 +44,7 @@ namespace PayrollManagement.Reports
             var query = $@"
                 SELECT e.EmpID, e.Name, e.Section, e.Designation,
                        r.Date, e.Shift, r.InTime, r.OutTime
-                FROM RawData r JOIN EmployeeInfo e ON e.EmpID = r.EmpID
+                FROM dbo.RawData r JOIN dbo.EmployeeInfo e ON e.EmpID = r.EmpID
                 WHERE {string.Join(" AND ", where)}
                 ORDER BY r.Date, e.EmpID";
 
@@ -47,8 +55,9 @@ namespace PayrollManagement.Reports
 
             foreach (var r in data)
             {
+                if (r[0] == null || r[4] == null) continue;
                 var empId = r[0]; var name = r[1]; var section = r[2]; var designation = r[3];
-                var dateValue = r[4]!.ToString()!; var shiftName = r[5] as string;
+                var dateValue = r[4].ToString()!; var shiftName = r[5] as string;
                 var inTimeRaw = r[6] as string; var outTimeRaw = r[7] as string;
                 if (string.IsNullOrEmpty(inTimeRaw)) continue;
 
@@ -64,7 +73,14 @@ namespace PayrollManagement.Reports
                     ? expectedDt.AddMinutes(-graceMinutes)
                     : expectedDt;
                 var thresholdTime = thresholdDt.TimeOfDay;
+
                 var actualInDt = reportDate + actualIn;
+                // If expected shift is in evening/night (>= 12:00) and actual punch is in early morning (< 12:00),
+                // it represents an employee arriving after midnight for their night shift
+                if (expectedIn.Value.Hours >= 12 && actualIn.Hours < 12)
+                {
+                    actualInDt = reportDate.AddDays(1) + actualIn;
+                }
 
                 string? status = null;
                 if (type == LateEarlyType.Late && actualInDt > expectedDt)
