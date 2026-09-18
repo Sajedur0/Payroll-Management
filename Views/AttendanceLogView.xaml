@@ -6,95 +6,113 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <!-- Header -->
-        <Border Background="White" Padding="20" Margin="20,20,20,10" CornerRadius="12">
+        <!-- Top Header Card -->
+        <Border Grid.Row="0" Background="White" BorderBrush="#E2E8F0" BorderThickness="1" Padding="20" Margin="20,18,20,12" CornerRadius="12">
             <Border.Effect>
-                <DropShadowEffect BlurRadius="15" ShadowDepth="2" Opacity="0.08" Color="Black"/>
+                <DropShadowEffect BlurRadius="14" ShadowDepth="2" Opacity="0.04" Color="#0F172A"/>
             </Border.Effect>
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
-                <StackPanel>
-                    <TextBlock Text="Daily Attendance Log" FontSize="22" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
-                    <TextBlock Text="{Binding DailyTitleDisplay}" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,4,0,0"/>
-                    <!-- Error Message -->
-                    <TextBlock Text="{Binding ErrorMessage}" Foreground="#DC2626" FontSize="12" Margin="0,6,0,0">
-                        <TextBlock.Style>
-                            <Style TargetType="TextBlock">
-                                <Setter Property="Visibility" Value="Collapsed"/>
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding HasError}" Value="True">
-                                        <Setter Property="Visibility" Value="Visible"/>
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </TextBlock.Style>
-                    </TextBlock>
-                    <!-- Success Message -->
-                    <TextBlock Text="{Binding SuccessMessage}" Foreground="#059669" FontSize="12" FontWeight="SemiBold" Margin="0,6,0,0">
-                        <TextBlock.Style>
-                            <Style TargetType="TextBlock">
-                                <Setter Property="Visibility" Value="Collapsed"/>
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding HasSuccess}" Value="True">
-                                        <Setter Property="Visibility" Value="Visible"/>
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </TextBlock.Style>
-                    </TextBlock>
+                <StackPanel VerticalAlignment="Center">
+                    <TextBlock Text="Biometric Attendance Log" FontSize="20" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                    <TextBlock Text="{Binding DailyTitleDisplay}" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,3,0,0"/>
                 </StackPanel>
-                <Button Grid.Column="1" Content="⟳ Reload" Command="{Binding LoadCommand}" Padding="16,8" Background="#4F46E5" Foreground="White" BorderThickness="0" Cursor="Hand" VerticalAlignment="Center">
-                    <Button.Resources>
-                        <Style TargetType="Border"><Setter Property="CornerRadius" Value="8"/></Style>
-                    </Button.Resources>
+                <Button Grid.Column="1" Command="{Binding LoadCommand}" Padding="16,8" Background="White" Foreground="#4F46E5" BorderBrush="#CBD5E1" BorderThickness="1" Cursor="Hand" VerticalAlignment="Center">
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <TextBlock Text="⟳" FontSize="14" FontWeight="Bold" Margin="0,0,6,0"/>
+                        <TextBlock Text="Reload Logs" FontWeight="SemiBold"/>
+                    </StackPanel>
                 </Button>
             </Grid>
         </Border>
 
-        <!-- Filters + Attendance Data Load -->
-        <Border Grid.Row="1" Background="White" Padding="15" Margin="20,0,20,10" CornerRadius="12">
+        <!-- Status Alerts -->
+        <StackPanel Grid.Row="1" Margin="20,0,20,6">
+            <!-- Success Message -->
+            <Border Background="#ECFDF5" BorderBrush="#A7F3D0" BorderThickness="1" CornerRadius="8" Padding="14,9" Margin="0,0,0,6">
+                <Border.Style>
+                    <Style TargetType="Border">
+                        <Setter Property="Visibility" Value="Collapsed"/>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding HasSuccess}" Value="True">
+                                <Setter Property="Visibility" Value="Visible"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Border.Style>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="✓" Foreground="#059669" FontWeight="Bold" FontSize="14" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                    <TextBlock Grid.Column="1" Text="{Binding SuccessMessage}" Foreground="#065F46" FontSize="12.5" FontWeight="SemiBold" TextWrapping="Wrap" VerticalAlignment="Center"/>
+                </Grid>
+            </Border>
+
+            <!-- Error Message -->
+            <Border Background="#FEF2F2" BorderBrush="#FECACA" BorderThickness="1" CornerRadius="8" Padding="14,9" Margin="0,0,0,6">
+                <Border.Style>
+                    <Style TargetType="Border">
+                        <Setter Property="Visibility" Value="Collapsed"/>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding HasError}" Value="True">
+                                <Setter Property="Visibility" Value="Visible"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Border.Style>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="⚠️" FontSize="14" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                    <TextBlock Grid.Column="1" Text="{Binding ErrorMessage}" Foreground="#991B1B" FontSize="12.5" FontWeight="SemiBold" TextWrapping="Wrap" VerticalAlignment="Center"/>
+                </Grid>
+            </Border>
+        </StackPanel>
+
+        <!-- Filters + Attendance Data Load Toolbar Card -->
+        <Border Grid.Row="2" Background="White" BorderBrush="#E2E8F0" BorderThickness="1" Padding="16,14" Margin="20,0,20,12" CornerRadius="12">
+            <Border.Effect>
+                <DropShadowEffect BlurRadius="14" ShadowDepth="2" Opacity="0.04" Color="#0F172A"/>
+            </Border.Effect>
             <WrapPanel Orientation="Horizontal" VerticalAlignment="Center">
-                <StackPanel Orientation="Horizontal" Margin="0,0,15,5">
-                    <TextBlock Text="From:" VerticalAlignment="Center" Margin="0,0,6,0" Foreground="{StaticResource TextSecondaryBrush}"/>
-                    <DatePicker SelectedDate="{Binding FromDate}" Width="140"/>
+                <StackPanel Orientation="Horizontal" Margin="0,0,16,6">
+                    <TextBlock Text="From:" VerticalAlignment="Center" Margin="0,0,8,0" Foreground="{StaticResource TextSecondaryBrush}" FontWeight="Medium" FontSize="12.5"/>
+                    <DatePicker SelectedDate="{Binding FromDate}" Width="145"/>
                 </StackPanel>
-                <StackPanel Orientation="Horizontal" Margin="0,0,15,5">
-                    <TextBlock Text="To:" VerticalAlignment="Center" Margin="0,0,6,0" Foreground="{StaticResource TextSecondaryBrush}"/>
-                    <DatePicker SelectedDate="{Binding ToDate}" Width="140"/>
+                <StackPanel Orientation="Horizontal" Margin="0,0,16,6">
+                    <TextBlock Text="To:" VerticalAlignment="Center" Margin="0,0,8,0" Foreground="{StaticResource TextSecondaryBrush}" FontWeight="Medium" FontSize="12.5"/>
+                    <DatePicker SelectedDate="{Binding ToDate}" Width="145"/>
                 </StackPanel>
-                <StackPanel Orientation="Horizontal" Margin="0,0,10,5">
-                    <TextBox Width="180" Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" Padding="8,5" VerticalAlignment="Center">
-                        <TextBox.Resources>
-                            <Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style>
-                        </TextBox.Resources>
+                <StackPanel Orientation="Horizontal" Margin="0,0,12,6">
+                    <TextBox Width="180" Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" Padding="10,6" VerticalAlignment="Center">
+                        <TextBox.InputBindings>
+                            <KeyBinding Key="Return" Command="{Binding SearchCommand}"/>
+                        </TextBox.InputBindings>
                     </TextBox>
-                    <TextBlock Text="  (EmpID)" VerticalAlignment="Center" Foreground="{StaticResource TextSecondaryBrush}" FontSize="11"/>
+                    <TextBlock Text=" (EmpID)" VerticalAlignment="Center" Foreground="{StaticResource TextSecondaryBrush}" FontSize="11" Margin="4,0,0,0"/>
                 </StackPanel>
-                <Button Content="Search" Command="{Binding SearchCommand}" Padding="18,6" Background="#1E1B4B" Foreground="White" BorderThickness="0" Cursor="Hand" Margin="5,0,0,5">
-                    <Button.Resources>
-                        <Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style>
-                    </Button.Resources>
-                </Button>
+                <Button Content="🔍 Search" Command="{Binding SearchCommand}" Padding="16,7" Background="#1E293B" Foreground="White" BorderThickness="0" Cursor="Hand" Margin="4,0,12,6"/>
 
                 <!-- Attendance Data Load Button -->
-                <Button Content="📥 Attendance Data Load" Command="{Binding LoadFromFaceIdCommand}" 
-                        Padding="18,6" Background="#059669" Foreground="White" BorderThickness="0" 
-                        Cursor="Hand" Margin="15,0,0,5" FontWeight="SemiBold">
-                    <Button.Resources>
-                        <Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style>
-                    </Button.Resources>
-                </Button>
+                <Button Content="📥 Load from Biometric Device" Command="{Binding LoadFromFaceIdCommand}" 
+                        Padding="18,7" Background="#059669" Foreground="White" BorderThickness="0" 
+                        Cursor="Hand" Margin="4,0,10,6" FontWeight="SemiBold"/>
 
-                <!-- Loading Indicators -->
-                <TextBlock Text="Loading..." Foreground="#4F46E5" FontWeight="SemiBold" Margin="12,5,0,0">
-                    <TextBlock.Style>
-                        <Style TargetType="TextBlock">
+                <!-- Loading Spinner Text -->
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="10,0,0,6">
+                    <StackPanel.Style>
+                        <Style TargetType="StackPanel">
                             <Setter Property="Visibility" Value="Collapsed"/>
                             <Style.Triggers>
                                 <DataTrigger Binding="{Binding IsLoading}" Value="True">
@@ -102,13 +120,15 @@
                                 </DataTrigger>
                             </Style.Triggers>
                         </Style>
-                    </TextBlock.Style>
-                </TextBlock>
+                    </StackPanel.Style>
+                    <TextBlock Text="⏳" FontSize="13" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                    <TextBlock Text="Loading..." Foreground="#4F46E5" FontWeight="SemiBold" FontSize="12" VerticalAlignment="Center"/>
+                </StackPanel>
             </WrapPanel>
         </Border>
 
-        <!-- Progress Bar Card (Shows live count loaded & remaining) -->
-        <Border Grid.Row="2" Background="White" CornerRadius="12" Margin="20,0,20,10" Padding="16,12">
+        <!-- Live Progress Bar Card (Shows count loaded & remaining) -->
+        <Border Grid.Row="3" Background="White" BorderBrush="#A7F3D0" BorderThickness="1" CornerRadius="12" Margin="20,0,20,12" Padding="18,14">
             <Border.Style>
                 <Style TargetType="Border">
                     <Setter Property="Visibility" Value="Collapsed"/>
@@ -120,57 +140,153 @@
                 </Style>
             </Border.Style>
             <Border.Effect>
-                <DropShadowEffect BlurRadius="15" ShadowDepth="2" Opacity="0.08" Color="Black"/>
+                <DropShadowEffect BlurRadius="14" ShadowDepth="2" Opacity="0.05" Color="#059669"/>
             </Border.Effect>
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
-                <Grid Grid.Row="0" Margin="0,0,0,8">
+                <Grid Grid.Row="0" Margin="0,0,0,10">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                        <TextBlock Text="⚡ " FontSize="13" Foreground="#059669"/>
-                        <TextBlock Text="{Binding ProgressText}" FontWeight="SemiBold" FontSize="12.5" Foreground="#1F2937" VerticalAlignment="Center"/>
+                        <TextBlock Text="⚡ " FontSize="14" Foreground="#059669"/>
+                        <TextBlock Text="{Binding ProgressText}" FontWeight="SemiBold" FontSize="13" Foreground="#0F172A" VerticalAlignment="Center"/>
                     </StackPanel>
-                    <TextBlock Grid.Column="1" Text="{Binding ProgressPercentageText}" FontWeight="Bold" FontSize="13" Foreground="#059669" VerticalAlignment="Center"/>
+                    <Border Grid.Column="1" Background="#ECFDF5" CornerRadius="12" Padding="10,4">
+                        <TextBlock Text="{Binding ProgressPercentageText}" FontWeight="Bold" FontSize="12.5" Foreground="#059669"/>
+                    </Border>
                 </Grid>
                 <ProgressBar Grid.Row="1" Height="10" Value="{Binding ProgressValue}" Minimum="0" Maximum="100"
-                             Foreground="#059669" Background="#E5E7EB" BorderThickness="0"/>
+                             Foreground="#059669" Background="#F1F5F9" BorderThickness="0">
+                    <ProgressBar.Resources>
+                        <Style TargetType="Border">
+                            <Setter Property="CornerRadius" Value="5"/>
+                        </Style>
+                    </ProgressBar.Resources>
+                </ProgressBar>
             </Grid>
         </Border>
 
-        <!-- DataGrid -->
-        <Border Grid.Row="3" Background="White" CornerRadius="12" Margin="20,0,20,20" Padding="10">
+        <!-- DataGrid Full Table Card -->
+        <Border Grid.Row="4" Background="White" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="12" Margin="20,0,20,18" Padding="14">
             <Border.Effect>
-                <DropShadowEffect BlurRadius="15" ShadowDepth="2" Opacity="0.08" Color="Black"/>
+                <DropShadowEffect BlurRadius="14" ShadowDepth="2" Opacity="0.04" Color="#0F172A"/>
             </Border.Effect>
-            <DataGrid ItemsSource="{Binding RawRecords}" AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False"
-                      GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="#F0F0F0" BorderThickness="0"
-                      HeadersVisibility="Column" RowHeight="36" AlternatingRowBackground="#F9FAFB">
-                <DataGrid.ColumnHeaderStyle>
-                    <Style TargetType="DataGridColumnHeader">
-                        <Setter Property="Background" Value="#F3F4F6"/>
-                        <Setter Property="Foreground" Value="#374151"/>
-                        <Setter Property="FontWeight" Value="SemiBold"/>
-                        <Setter Property="Padding" Value="10,8"/>
-                        <Setter Property="BorderThickness" Value="0,0,0,1"/>
-                        <Setter Property="BorderBrush" Value="#E5E7EB"/>
-                    </Style>
-                </DataGrid.ColumnHeaderStyle>
-                <DataGrid.Columns>
-                    <DataGridTextColumn Header="ID" Binding="{Binding ID}" Width="60"/>
-                    <DataGridTextColumn Header="EmpID" Binding="{Binding EmpID}" Width="120"/>
-                    <DataGridTextColumn Header="Date" Binding="{Binding DateDisplay}" Width="120"/>
-                    <DataGridTextColumn Header="In Time" Binding="{Binding InTimeDisplay}" Width="110"/>
-                    <DataGridTextColumn Header="Out Time" Binding="{Binding OutTimeDisplay}" Width="110"/>
-                    <DataGridTextColumn Header="Work Hours" Binding="{Binding WorkHoursDisplay}" Width="100"/>
-                </DataGrid.Columns>
-            </DataGrid>
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <!-- Table Header Bar -->
+                <Grid Grid.Row="0" Margin="4,0,4,12">
+                    <TextBlock Text="Punch Log Records" FontSize="14" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                    <Border HorizontalAlignment="Right" Background="#EEF2FF" CornerRadius="20" Padding="12,5">
+                        <TextBlock FontSize="11.5" Foreground="#4F46E5" FontWeight="SemiBold">
+                            <Run Text="{Binding RawRecords.Count, Mode=OneWay}"/><Run Text=" log entries"/>
+                        </TextBlock>
+                    </Border>
+                </Grid>
+
+                <!-- DataGrid -->
+                <DataGrid Grid.Row="1" ItemsSource="{Binding RawRecords}" AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False"
+                          GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="#F1F5F9" BorderThickness="0"
+                          HeadersVisibility="Column" RowHeight="38" AlternatingRowBackground="#FAFAFA">
+                    <DataGrid.ColumnHeaderStyle>
+                        <Style TargetType="DataGridColumnHeader">
+                            <Setter Property="Background" Value="#F8FAFC"/>
+                            <Setter Property="Foreground" Value="#475569"/>
+                            <Setter Property="FontWeight" Value="SemiBold"/>
+                            <Setter Property="Padding" Value="10,8"/>
+                            <Setter Property="FontSize" Value="11.5"/>
+                            <Setter Property="BorderThickness" Value="0,0,0,1"/>
+                            <Setter Property="BorderBrush" Value="#E2E8F0"/>
+                            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                            <Setter Property="VerticalContentAlignment" Value="Center"/>
+                        </Style>
+                    </DataGrid.ColumnHeaderStyle>
+                    <DataGrid.RowStyle>
+                        <Style TargetType="DataGridRow">
+                            <Setter Property="VerticalContentAlignment" Value="Center"/>
+                            <Style.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter Property="Background" Value="#F1F5F9"/>
+                                </Trigger>
+                                <Trigger Property="IsSelected" Value="True">
+                                    <Setter Property="Background" Value="#EEF2FF"/>
+                                    <Setter Property="Foreground" Value="#1E1B4B"/>
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+                    </DataGrid.RowStyle>
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Log ID" Binding="{Binding ID}" Width="80">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="HorizontalAlignment" Value="Center"/>
+                                    <Setter Property="VerticalAlignment" Value="Center"/>
+                                    <Setter Property="FontSize" Value="12"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+                        <DataGridTextColumn Header="Emp ID" Binding="{Binding EmpID}" Width="120">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="HorizontalAlignment" Value="Center"/>
+                                    <Setter Property="VerticalAlignment" Value="Center"/>
+                                    <Setter Property="FontWeight" Value="SemiBold"/>
+                                    <Setter Property="FontSize" Value="12"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+                        <DataGridTextColumn Header="Punch Date" Binding="{Binding DateDisplay}" Width="140">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="HorizontalAlignment" Value="Center"/>
+                                    <Setter Property="VerticalAlignment" Value="Center"/>
+                                    <Setter Property="FontSize" Value="12"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+                        <DataGridTextColumn Header="In Time" Binding="{Binding InTimeDisplay}" Width="130">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="HorizontalAlignment" Value="Center"/>
+                                    <Setter Property="VerticalAlignment" Value="Center"/>
+                                    <Setter Property="Foreground" Value="#059669"/>
+                                    <Setter Property="FontWeight" Value="Medium"/>
+                                    <Setter Property="FontSize" Value="12"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+                        <DataGridTextColumn Header="Out Time" Binding="{Binding OutTimeDisplay}" Width="130">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="HorizontalAlignment" Value="Center"/>
+                                    <Setter Property="VerticalAlignment" Value="Center"/>
+                                    <Setter Property="Foreground" Value="#DC2626"/>
+                                    <Setter Property="FontWeight" Value="Medium"/>
+                                    <Setter Property="FontSize" Value="12"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+                        <DataGridTextColumn Header="Work Duration" Binding="{Binding WorkHoursDisplay}" Width="*">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="HorizontalAlignment" Value="Center"/>
+                                    <Setter Property="VerticalAlignment" Value="Center"/>
+                                    <Setter Property="FontWeight" Value="SemiBold"/>
+                                    <Setter Property="FontSize" Value="12"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </Grid>
         </Border>
     </Grid>
 </UserControl>
-
