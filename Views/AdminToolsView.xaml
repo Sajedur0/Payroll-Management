@@ -3,6 +3,8 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
     <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+
         <!-- Modern tab header style for Admin Tools -->
         <Style TargetType="RadioButton" x:Key="AdminToolTabButton">
             <Setter Property="FontSize" Value="12.5"/>
@@ -183,7 +185,7 @@
                                 <StackPanel Orientation="Horizontal" Margin="0,0,0,18">
                                     <Button Content="💾 Save Holiday" Command="{Binding SaveHolidayCommand}" Padding="18,8" Background="#4F46E5" Foreground="White" BorderThickness="0" Cursor="Hand" FontWeight="SemiBold" Margin="0,0,10,0"/>
                                     <Button Content="Cancel Edit" Command="{Binding CancelHolidayEditCommand}" Padding="16,8" Background="White" Foreground="#475569" BorderBrush="#CBD5E1" BorderThickness="1" Cursor="Hand"
-                                            Visibility="{Binding IsEditingHoliday, Converter={x:Static BooleanToVisibilityConverter.True}}"/>
+                                            Visibility="{Binding IsEditingHoliday, Converter={StaticResource BooleanToVisibilityConverter}}"/>
                                 </StackPanel>
 
                                 <TextBlock Text="Holiday Directory" FontWeight="SemiBold" FontSize="13" Foreground="{StaticResource TextPrimaryBrush}" Margin="0,8,0,10"/>
