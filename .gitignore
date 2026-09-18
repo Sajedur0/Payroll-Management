@@ -109,6 +109,13 @@ $RECYCLE.BIN/
 *.*~
 ~$*
 
+## Local dev scripts & temporary outputs
+binReleaseTest/
+env_check.txt
+env_check2.cmd
+publish.cmd
+publish_done.txt
+
 ## SQL scripts are source - keep tracked (e.g. Database/setup.sql)
 
 ## Docs / local prompts - ignore markdown except README
